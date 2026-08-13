@@ -11,7 +11,7 @@ from openai import APIError, APITimeoutError, OpenAI, RateLimitError
 
 log = logging.getLogger(__name__)
 
-DEFAULT_BASE_URL = "https://api.novita.ai/openai/v1"
+DEFAULT_BASE_URL = "https://api.novita.ai/openai"
 RETRYABLE = (APITimeoutError, RateLimitError, APIError)
 
 

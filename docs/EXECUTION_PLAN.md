@@ -19,10 +19,10 @@ What remains is gated on Novita reachability, not on code:
 
 | Gate | State |
 |---|---|
-| G0 — model ids resolved against the live catalog | **Blocked.** `api.novita.ai:443` is refused by the egress policy (403 on CONNECT), and no `NOVITA_API_KEY` is set |
-| G1 — narration reflects state | Blocked on G0. The context builder it depends on is tested offline |
-| G2 — extractor JSON ≥ 8/10 | Blocked on G0. Parse, fence-strip and retry paths are tested against canned malformed output |
-| README sample transcript | Blocked on G0 — deliberately left as a marked placeholder rather than hand-written |
+| G0 — model ids resolved against the live catalog | **Cleared.** Base URL corrected to `https://api.novita.ai/openai`; both roles default to `deepseek/deepseek-v4-flash-0731` |
+| G1 — narration reflects state | Open. Needs one real turn. The context builder it depends on is tested offline |
+| G2 — extractor JSON ≥ 8/10 | Open. Parse, fence-strip and retry paths are tested against canned malformed output |
+| README sample transcript | Open — deliberately left as a marked placeholder rather than hand-written |
 
 Everything else in this document is the record of how it was built and what the
 open decisions were.
@@ -100,13 +100,18 @@ No `NOVITA_API_KEY` is present in this environment. Before building on any model
 id, resolve the catalog at runtime — display names on novita.ai are not API ids:
 
 ```bash
-curl https://api.novita.ai/openai/v1/models \
+curl https://api.novita.ai/openai/models \
   -H "Authorization: Bearer $NOVITA_API_KEY" | jq -r '.data[].id' | sort
 ```
 
-Confirm `deepseek/deepseek-v3.2` and `zai-org/glm-4.7-flash` (or their current
-equivalents) are actually served, then correct `.env.example` to match. Ten
-minutes here saves an hour of 404s later.
+**Resolved.** The catalog was listed against a live key and both originally
+guessed ids (`deepseek/deepseek-v3.2`, `zai-org/glm-4.7-flash`) turned out to be
+served — the stale value was not a model id but the **base URL**: it is
+`https://api.novita.ai/openai`, not `.../openai/v1` as the design docs had it.
+That would have 404'd every reviewer on the first turn, which is exactly the
+class of failure this gate exists to catch.
+
+Shipped defaults are now `deepseek/deepseek-v4-flash-0731` for both roles.
 
 *If the key is delayed:* Phases 1, 2, and most of 3 need no network. Write a
 `StubClient` in `tests/` that returns canned prose and canned delta JSON, and

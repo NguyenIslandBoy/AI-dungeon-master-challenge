@@ -17,16 +17,16 @@ Tick boxes as you go. If a phase overruns by >15 min, take from the cut list
 
       ```
       NOVITA_API_KEY=
-      NOVITA_BASE_URL=https://api.novita.ai/openai/v1
-      NARRATOR_MODEL=deepseek/deepseek-v3.2
-      EXTRACTOR_MODEL=zai-org/glm-4.7-flash
+      NOVITA_BASE_URL=https://api.novita.ai/openai
+      NARRATOR_MODEL=deepseek/deepseek-v4-flash-0731
+      EXTRACTOR_MODEL=deepseek/deepseek-v4-flash-0731
       ```
 
-- [ ] **Verify the model ids before building anything on them.** Display names on
+- [x] **Verify the model ids before building anything on them.** Display names on
       novita.ai are not API ids:
 
       ```bash
-      curl https://api.novita.ai/openai/v1/models \
+      curl https://api.novita.ai/openai/models \
         -H "Authorization: Bearer $NOVITA_API_KEY" | jq -r '.data[].id'
       ```
 

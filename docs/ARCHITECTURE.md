@@ -263,15 +263,15 @@ Novita is an inference cloud serving open-weight models behind an **OpenAI-compa
 API**. <cite index="9-1">Set the base URL to `api.novita.ai/openai`, supply an API key,
 and change the model name — existing OpenAI ChatCompletion code otherwise works
 unchanged</cite>. <cite index="4-1">With the OpenAI SDKs specifically, set the SDK base
-URL to `https://api.novita.ai/openai/v1`.</cite> <cite index="8-1">Streaming and function
+URL to `https://api.novita.ai/openai`.</cite> <cite index="8-1">Streaming and function
 calling are supported.</cite>
 
 ### Model roles
 
 | Role | Default | Rationale |
 |---|---|---|
-| **Narrator** | `deepseek/deepseek-v3.2` | Long context, strong prose, ~$0.27/M in |
-| **Extractor** | `zai-org/glm-4.7-flash` | ~$0.07/M in; <cite index="2-1">GLM models on Novita ship with function calling and structured output support</cite> |
+| **Narrator** | `deepseek/deepseek-v4-flash-0731` | Verified served; cheap, long context, solid prose |
+| **Extractor** | `deepseek/deepseek-v4-flash-0731` | Same model by default. Kept a separate setting so the extractor can move to a cheaper or more JSON-reliable model with no code change |
 
 Alternatives worth a swap if narration feels flat: `moonshotai/kimi-k2.5` (strong
 creative writing, pricier) or `zai-org/glm-4.7`. For the extractor, `qwen3-coder-30b-a3b`
@@ -279,7 +279,7 @@ or a Ling flash model are comparable and cheap.
 
 **Model ids are configuration, never constants.** Novita's catalog rotates
 frequently and the website's display names are not API ids. Resolve them at
-runtime via `GET /openai/v1/models` and read defaults from `.env`. The `--models`
+runtime via `GET /openai/models` and read defaults from `.env`. The `--models`
 CLI flag exists so a reviewer can fix a stale default in ten seconds instead of
 filing it as a broken submission.
 

@@ -190,21 +190,26 @@ something not in the bible, it is recorded and injected from then on.
 
 Two-pass gets *stronger* on open-weight models than it would on a frontier
 provider. Asking a mid-size model to write good prose **and** emit valid
-structured JSON in one generation degrades both noticeably. Splitting the jobs
-lets each model do one thing, and lets the extractor run on a model costing
-roughly `$0.07/M` input tokens — about a 10–20× saving versus a frontier
-provider, which is what makes a second call per turn obviously correct rather
-than a luxury.
+structured JSON in one generation degrades both noticeably — and the failure is
+correlated, because the same generation that drifts out of character is the one
+that drops a brace. Splitting the jobs lets each call do one thing, at a
+per-token cost roughly an order of magnitude below a frontier provider. That is
+what makes a second call per turn obviously correct rather than a luxury.
 
 Tool calling is the more "agentic" answer and would be the first thing I tried
 with more time — as a *supplement* to extraction, not a replacement.
 
-### Two model roles is not multi-model routing
+### Two roles, one model — but still two settings
 
-The narrator and extractor are two fixed roles with two `.env` defaults. There is
-no router, no fallback chain, no per-request model selection. If the cheap
-extractor turns out to emit unreliable JSON, the fix is
-`EXTRACTOR_MODEL=$NARRATOR_MODEL` — a config change with zero code impact.
+`NARRATOR_MODEL` and `EXTRACTOR_MODEL` both default to
+`deepseek/deepseek-v4-flash-0731`. They are separate settings anyway, and that is
+the point: the roles have genuinely different requirements — one wants
+temperature and prose quality, the other wants determinism and valid JSON — so
+either can move independently the moment the other stops being a good fit. Today
+that is a one-line `.env` change with no code impact.
+
+What this is *not* is multi-model routing: no router, no fallback chain, no
+per-request selection. Two names in a config file.
 
 ### Everything else
 

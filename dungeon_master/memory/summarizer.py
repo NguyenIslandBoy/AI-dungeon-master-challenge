@@ -12,6 +12,7 @@ import os
 
 from ..llm import prompts
 from ..llm.client import LLMClient, LLMError
+from ..llm.extractor import DEFAULT_MODEL
 from .transcript import VERBATIM_TURNS, Transcript
 
 log = logging.getLogger(__name__)
@@ -38,7 +39,7 @@ def maybe_compress(
         summary = client.complete(
             prompt,
             [{"role": "user", "content": "Write the digest."}],
-            model=os.environ.get("EXTRACTOR_MODEL", "zai-org/glm-4.7-flash"),
+            model=os.environ.get("EXTRACTOR_MODEL", DEFAULT_MODEL),
             max_tokens=300,
             temperature=0.3,
         )

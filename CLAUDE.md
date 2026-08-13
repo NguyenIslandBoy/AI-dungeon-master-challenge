@@ -73,7 +73,7 @@ Novita is OpenAI-compatible. Use the `openai` package, not `anthropic`:
 from openai import OpenAI
 client = OpenAI(
     api_key=os.environ["NOVITA_API_KEY"],
-    base_url="https://api.novita.ai/openai/v1",
+    base_url="https://api.novita.ai/openai",
 )
 ```
 
@@ -81,14 +81,14 @@ client = OpenAI(
 
 | Role | Default | Why |
 |---|---|---|
-| Narrator | `deepseek/deepseek-v3.2` | Cheap, long context, solid prose |
-| Extractor | `zai-org/glm-4.7-flash` | Very cheap, fast, supports structured output |
+| Narrator | `deepseek/deepseek-v4-flash-0731` | Cheap, long context, solid prose |
+| Extractor | `deepseek/deepseek-v4-flash-0731` | Same model by default; separate setting so it can be swapped |
 
 **Never hardcode a model ID.** Novita's catalog changes often and display names on
 the website are not API ids. Confirm ids at runtime:
 
 ```bash
-curl https://api.novita.ai/openai/v1/models -H "Authorization: Bearer $NOVITA_API_KEY"
+curl https://api.novita.ai/openai/models -H "Authorization: Bearer $NOVITA_API_KEY"
 ```
 
 Config via `.env` → `NOVITA_API_KEY`, `NOVITA_BASE_URL`, `NARRATOR_MODEL`,
