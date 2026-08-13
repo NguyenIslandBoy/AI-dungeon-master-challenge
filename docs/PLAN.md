@@ -10,10 +10,10 @@ Tick boxes as you go. If a phase overruns by >15 min, take from the cut list
 
 ## Phase 0 — Scaffold (15 min)
 
-- [ ] `uv init`, add deps: `openai`, `pydantic`, `pyyaml`, `rich`, `python-dotenv`, `pytest`
-- [ ] Package skeleton per `CLAUDE.md` layout, all modules empty but importable
-- [ ] `.gitignore` (`.env`, `save.json`, `*.log`, `__pycache__`)
-- [ ] `.env.example`:
+- [x] `uv init`, add deps: `openai`, `pydantic`, `pyyaml`, `rich`, `python-dotenv`, `pytest`
+- [x] Package skeleton per `CLAUDE.md` layout, all modules empty but importable
+- [x] `.gitignore` (`.env`, `save.json`, `*.log`, `__pycache__`)
+- [x] `.env.example`:
 
       ```
       NOVITA_API_KEY=
@@ -32,11 +32,11 @@ Tick boxes as you go. If a phase overruns by >15 min, take from the cut list
 
       Correct `.env.example` to match. Ten minutes here saves an hour of confusing
       404s later.
-- [ ] `llm/client.py`: `OpenAI(api_key=..., base_url=...)` wrapper —
+- [x] `llm/client.py`: `OpenAI(api_key=..., base_url=...)` wrapper —
       `complete(system, messages, model, max_tokens, stream=False)` with 2-attempt
       backoff, timeout, and a `--models` helper that lists available ids.
       No business logic in here.
-- [ ] Probe once at startup whether the extractor model accepts
+- [x] Probe once at startup whether the extractor model accepts
       `response_format={"type": "json_object"}`; cache the result. If not,
       fall back to prompt-enforced JSON.
 
@@ -49,11 +49,11 @@ call returns text from Novita.
 
 Hand-write it. Do not generate a sprawling world.
 
-- [ ] `world/world.yaml` — 6 locations, 6 NPCs, 8 items, 2 factions, 2 quests,
+- [x] `world/world.yaml` — 6 locations, 6 NPCs, 8 items, 2 factions, 2 quests,
       4 history facts, `opening_scene`
-- [ ] `world/loader.py` — parse into pydantic models, **validate all cross-references**
+- [x] `world/loader.py` — parse into pydantic models, **validate all cross-references**
       (every exit, npc, item id resolves) and raise loudly on failure
-- [ ] Every location has `secrets`; every NPC has `wants` / `knows` / `hides`
+- [x] Every location has `secrets`; every NPC has `wants` / `knows` / `hides`
 
 ### Seed (replace if you have something better — you probably do)
 
@@ -75,15 +75,15 @@ This is 30 minutes that buys most of the "the author enjoyed building it" points
 
 ## Phase 2 — State layer (45 min)
 
-- [ ] `state/models.py` — `GameState`, `Relationship`, `StateDelta`, `RelChange`
+- [x] `state/models.py` — `GameState`, `Relationship`, `StateDelta`, `RelChange`
       (exact shapes in `docs/ARCHITECTURE.md` §3, §6)
-- [ ] `state/store.py`:
-  - [ ] `apply_delta(state, delta, world) -> tuple[GameState, list[str]]`
+- [x] `state/store.py`:
+  - [x] `apply_delta(state, delta, world) -> tuple[GameState, list[str]]`
         returns new state + list of rejection reasons. **Pure.**
-  - [ ] Validation: unknown ids dropped, non-adjacent moves rejected,
+  - [x] Validation: unknown ids dropped, non-adjacent moves rejected,
         disposition clamped to [-100, 100], no duplicate inventory entries
-  - [ ] `save(state, path)` / `load(path)` — plain JSON
-- [ ] `tests/test_delta.py` — 5–6 cases incl. illegal move, unknown item,
+  - [x] `save(state, path)` / `load(path)` — plain JSON
+- [x] `tests/test_delta.py` — 5–6 cases incl. illegal move, unknown item,
       clamping, empty-delta idempotence
 
 **Done when:** `uv run pytest -q` is green. No LLM involved yet.
@@ -94,14 +94,14 @@ This is 30 minutes that buys most of the "the author enjoyed building it" points
 
 Spend the time here. This is what gets discussed in the interview.
 
-- [ ] `memory/transcript.py` — turn buffer, `last_n(8)`
-- [ ] `llm/prompts.py` — `DM_SYSTEM` (with the 6 hard rules from ARCHITECTURE §5),
+- [x] `memory/transcript.py` — turn buffer, `last_n(8)`
+- [x] `llm/prompts.py` — `DM_SYSTEM` (with the 6 hard rules from ARCHITECTURE §5),
       `SCENE_BLOCK`, `STATE_BLOCK`, `SUMMARY_PROMPT`, `EXTRACTOR_SYSTEM`
-- [ ] `context.py` — `build(state, world, memory, player_input) -> (system, messages)`
-  - [ ] Injects **only** current location + exits + entities present
-  - [ ] Renders state compactly as prose-ish lines, **not** raw JSON dump
-  - [ ] Hard token cap with a truncation strategy
-- [ ] `llm/narrator.py` — streams; 120–200 words
+- [x] `context.py` — `build(state, world, memory, player_input) -> (system, messages)`
+  - [x] Injects **only** current location + exits + entities present
+  - [x] Renders state compactly as prose-ish lines, **not** raw JSON dump
+  - [x] Hard token cap with a truncation strategy
+- [x] `llm/narrator.py` — streams; 120–200 words
 
 **Done when:** you can hand-construct a `GameState`, call `narrate`, and get prose
 that correctly reflects inventory and location.
@@ -110,13 +110,13 @@ that correctly reflects inventory and location.
 
 ## Phase 4 — Extractor + loop closure (45 min)
 
-- [ ] `llm/extractor.py` — extractor model, `EXTRACTOR_SYSTEM`, JSON-only output,
+- [x] `llm/extractor.py` — extractor model, `EXTRACTOR_SYSTEM`, JSON-only output,
       **fence-stripping**, pydantic parse, one retry with the parse error fed back,
       then give up gracefully. Include a worked example in the prompt — open-weight
       models comply far better with one-shot than with a bare schema description.
-- [ ] Wire the full turn lifecycle (ARCHITECTURE §4)
-- [ ] `memory/summarizer.py` — regenerate rolling summary every 8 turns
-- [ ] Logging to `game.log` — every delta, every rejection, every retry
+- [x] Wire the full turn lifecycle (ARCHITECTURE §4)
+- [x] `memory/summarizer.py` — regenerate rolling summary every 8 turns
+- [x] Logging to `game.log` — every delta, every rejection, every retry
 
 **Done when:** a 12-turn playthrough keeps inventory and location correct, and
 `game.log` shows the deltas.
@@ -125,11 +125,11 @@ that correctly reflects inventory and location.
 
 ## Phase 5 — CLI polish (30 min)
 
-- [ ] `cli.py` — `rich` panels, "the DM considers…" spinner, streamed output
-- [ ] `/state` — pretty-print current state. **Do not skip this.** It's the fastest
+- [x] `cli.py` — `rich` panels, "the DM considers…" spinner, streamed output
+- [x] `/state` — pretty-print current state. **Do not skip this.** It's the fastest
       way for a reviewer to see the architecture is real, and it's your live demo.
-- [ ] `/save`, `/load`, `/quit`, autosave each turn
-- [ ] Graceful `Ctrl+C`; never show a traceback to the player
+- [x] `/save`, `/load`, `/quit`, autosave each turn
+- [x] Graceful `Ctrl+C`; never show a traceback to the player
 
 **Done when:** you'd be happy screen-recording 3 minutes of it.
 
@@ -155,7 +155,7 @@ Weighted heavily. Structure:
    not state. Mention the ~10–20x cost saving that makes two-pass obviously worth it.
 7. **What I deliberately did not build:** RAG, frameworks, web UI, combat — with
    reasons. This section is the differentiator; most candidates omit it.
-8. **Known limitations:** the honest list from ARCHITECTURE §9.
+8. **Known limitations:** the honest list from ARCHITECTURE §10.
 9. **Next day:** async extraction; canon validator that checks narration only
    references known entities; an eval harness replaying a fixed 30-turn transcript
    and asserting final state; NPC-scoped memory (what *they* witnessed vs. what
@@ -166,12 +166,17 @@ Weighted heavily. Structure:
 ## Cut list (in this order, if time runs short)
 
 1. Rolling summary compression → just truncate to last 12 turns, note it in README
-2. `/save` `/load` → autosave only
-3. Snapshot test of `context.build()`
-4. `rich` styling → plain print
-5. Streaming → blocking call with a spinner
+2. Snapshot test of `context.build()`
+3. `rich` styling → plain print
+4. `/save` `/load` → autosave only
+5. Streaming → blocking call with a spinner. **Take this last:** ARCHITECTURE §6
+   justifies the two-pass design partly on streaming hiding the extractor's
+   latency. Cutting it narrows that argument to separation of concerns alone —
+   amend §6 if you take it.
 
 **Never cut:** `apply_delta` validation, `/state`, the README.
+
+*(Nothing on this list was needed — all five shipped.)*
 
 ---
 
@@ -180,6 +185,6 @@ Weighted heavily. Structure:
 - [ ] Fresh clone + `uv sync` + API key → playable in under 2 minutes
 - [ ] 15-turn playthrough with zero contradictions in inventory/location
 - [ ] An early stated preference visibly influences a later scene
-- [ ] `pytest` green
+- [x] `pytest` green
 - [ ] README covers all 9 sections above
-- [ ] Total files ≈ 15. If it's 40, something went wrong.
+- [x] Total files ≈ 15. If it's 40, something went wrong.

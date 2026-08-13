@@ -1,0 +1,25 @@
+[project]
+name = "dungeon-master"
+version = "0.1.0"
+description = "A CLI text adventure where the application owns game state and an LLM owns prose."
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=1.40",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "rich>=13.7",
+    "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["dungeon_master"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

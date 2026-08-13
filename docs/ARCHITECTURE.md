@@ -63,11 +63,11 @@ Nothing that affects what the player *can do* is allowed to live only in prose.
         └──────────────────────────┼──────────────────────────┘
                                    │
                     ┌──────────────▼───────────────┐
-                    │   Narrator (sonnet)          │──► prose to player
+                    │  Narrator (NARRATOR_MODEL)   │──► prose to player
                     └──────────────┬───────────────┘
                                    │
                     ┌──────────────▼───────────────┐
-                    │   Extractor (haiku)          │──► StateDelta (JSON)
+                    │  Extractor (EXTRACTOR_MODEL) │──► StateDelta (JSON)
                     │   state + input + narration  │
                     └──────────────────────────────┘
 ```

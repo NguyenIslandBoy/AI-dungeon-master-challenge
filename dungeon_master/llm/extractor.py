@@ -1,0 +1,105 @@
+"""Pass two: turn (state, input, narration) into a proposed StateDelta.
+
+Never `json.loads` a raw completion. The pipeline is always
+fence-strip -> parse -> pydantic validate -> (caller) apply_delta validate.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import os
+import re
+
+from ..state.models import GameState, StateDelta
+from ..world.loader import World
+from . import prompts
+from .client import LLMClient, LLMError
+
+log = logging.getLogger(__name__)
+
+DEFAULT_MODEL = "zai-org/glm-4.7-flash"
+FENCE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.MULTILINE)
+
+
+def extractor_model() -> str:
+    return os.environ.get("EXTRACTOR_MODEL", DEFAULT_MODEL)
+
+
+def strip_fences(raw: str) -> str:
+    """Expect markdown fences rather than treating them as an error — open-weight
+    models add them constantly, and it is not worth a retry."""
+    text = FENCE.sub("", raw).strip()
+    start, end = text.find("{"), text.rfind("}")
+    return text[start : end + 1] if start != -1 and end > start else text
+
+
+def parse_delta(raw: str) -> StateDelta:
+    """Raises ValueError with a message worth feeding back to the model."""
+    try:
+        return StateDelta.model_validate(json.loads(strip_fences(raw)))
+    except Exception as exc:
+        raise ValueError(str(exc)) from exc
+
+
+def _user_message(world: World, state: GameState, player_input: str, narration: str) -> str:
+    stages = {qid: list(q.stages) for qid, q in world.quests.items()}
+    return prompts.EXTRACTOR_USER.format(
+        locations=", ".join(world.locations),
+        exits=", ".join(world.locations[state.current_location].exits),
+        items=", ".join(world.items),
+        npcs=", ".join(world.npcs),
+        quests=json.dumps(stages),
+        location=state.current_location,
+        inventory=", ".join(state.inventory) or "(empty)",
+        quest_flags=json.dumps(state.quest_flags),
+        traits=", ".join(state.player_traits) or "(none)",
+        player_input=player_input,
+        narration=narration,
+    )
+
+
+def extract(
+    client: LLMClient,
+    world: World,
+    state: GameState,
+    player_input: str,
+    narration: str,
+) -> StateDelta | None:
+    """One retry with the parse error fed back, then give up gracefully.
+
+    Returning None means "no state change this turn". A dropped update is
+    recoverable; a crash mid-adventure is not.
+    """
+    model = extractor_model()
+    user = _user_message(world, state, player_input, narration)
+    messages = [{"role": "user", "content": user}]
+
+    for attempt in (1, 2):
+        try:
+            raw = client.complete(
+                prompts.EXTRACTOR_SYSTEM,
+                messages,
+                model=model,
+                max_tokens=500,
+                temperature=0.1,
+                json_mode=client.supports_json_mode(model),
+            )
+            assert isinstance(raw, str)
+            delta = parse_delta(raw)
+            log.info("delta (attempt %s): %s", attempt, delta.model_dump(exclude_defaults=True))
+            return delta
+        except ValueError as exc:
+            log.warning("extractor parse failure (attempt %s): %s", attempt, exc)
+            if attempt == 1:
+                messages = [
+                    {"role": "user", "content": user},
+                    {"role": "assistant", "content": raw},
+                    {"role": "user", "content": prompts.RETRY_SUFFIX.format(error=exc)},
+                ]
+        except LLMError as exc:
+            log.error("extractor transport failure: %s", exc)
+            return None
+
+    log.error("extractor gave up; skipping delta for this turn")
+    return None

@@ -11,17 +11,34 @@ where the build can stall.
 
 ---
 
-## 1. Where the repo stands
+## 0. Build status
 
-Docs only. There is no `pyproject.toml`, no `dungeon_master/` package, no
-`tests/`, no `.env.example`. Every checkbox in `PLAN.md` is unticked, and that is
-accurate.
+Phases R through 6 are **implemented**. 54 tests pass with no network access.
 
-Toolchain confirmed present: Python 3.11.15, `uv`. **`NOVITA_API_KEY` is not
-set** — see Gate G0.
+What remains is gated on Novita reachability, not on code:
 
-The design work is done and it is good. The risk in this project is no longer
-"what should it look like"; it is time, and one external dependency.
+| Gate | State |
+|---|---|
+| G0 — model ids resolved against the live catalog | **Blocked.** `api.novita.ai:443` is refused by the egress policy (403 on CONNECT), and no `NOVITA_API_KEY` is set |
+| G1 — narration reflects state | Blocked on G0. The context builder it depends on is tested offline |
+| G2 — extractor JSON ≥ 8/10 | Blocked on G0. Parse, fence-strip and retry paths are tested against canned malformed output |
+| README sample transcript | Blocked on G0 — deliberately left as a marked placeholder rather than hand-written |
+
+Everything else in this document is the record of how it was built and what the
+open decisions were.
+
+---
+
+## 1. Where the repo stood at the start
+
+Docs only. No `pyproject.toml`, no `dungeon_master/` package, no `tests/`, no
+`.env.example`. Every checkbox in `PLAN.md` unticked, and accurately so.
+
+Toolchain confirmed present: Python 3.11.15, `uv`. **`NOVITA_API_KEY` not set** —
+see Gate G0.
+
+The design work was done and it was good. The risk was never "what should it look
+like"; it was time, and one external dependency.
 
 ---
 

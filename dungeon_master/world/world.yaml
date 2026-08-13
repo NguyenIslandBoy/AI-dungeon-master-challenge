@@ -1,0 +1,316 @@
+meta:
+  name: "The Keeper's Reach"
+  start_location: lighthouse_landing
+  tone: |
+    Gothic coastal folk-horror. Rain, salt, and old obligations. The sea is not
+    evil, it is patient. Nobody in this world is lying to the player, but almost
+    everybody is leaving something out.
+  opening_scene: |
+    You awaken on the floor of a lighthouse you do not remember entering.
+
+    Rain hammers the seaward windows in long grey sheets. Somewhere far above,
+    a light is still turning — you can feel the slow sweep of it through the
+    boards under your back, patient as a heartbeat.
+
+    On a wooden table: a rusty key and a sealed letter, the wax stamped with a
+    crest of three gulls over a wave. A staircase spirals up into the dark. A
+    warped door faces the shore, and beneath it, seawater is coming in.
+
+    What do you do?
+
+history:
+  - "Eleven years ago the packet-ship Meridian broke apart on the Reach in a
+     winter storm. Every soul aboard was lost, and the wreck has never been found."
+  - "The lighthouse has burned every night since without fail, which the
+     coastal villages take as proof that the Keeper is faithful, and the
+     Tide-Wardens take as proof of something else."
+  - "House Valen's fortune was built on salvage rights to this coast. Those
+     rights lapse if the Reach goes a full year without a wreck."
+  - "The Tide-Wardens swore an oath at the drowned chapel to keep the light
+     burning. The oath binds them to truth — no Warden can state a falsehood —
+     but it never bound them to speak."
+  - "The village of Tharrow, four miles inland, no longer sends anyone to the
+     Reach after dark. They will not say why, and they are not Wardens, so
+     they may simply be sensible."
+
+factions:
+  house_valen:
+    name: "House Valen"
+    creed: "The sea gives to those positioned to receive it."
+    wants: "The light dark for one night, so a ship they have been waiting
+      eleven years for can finally come in — or finally go down."
+    known_for: "Salvage rights, immaculate paperwork, and a crest of three
+      gulls over a wave."
+  tide_wardens:
+    name: "The Tide-Wardens"
+    creed: "The light burns. We do not ask what for."
+    wants: "The light kept burning, and the reason for it kept buried, mostly
+      because they no longer remember the reason and are ashamed of that."
+    known_for: "The oath of truth. A Warden cannot state a falsehood, and has
+      become very skilled at saying almost nothing."
+
+locations:
+  lighthouse_landing:
+    name: "The Landing"
+    description: "The ground floor of the lighthouse. Salt-swollen boards, a
+      wooden table, and a cold iron stove that has not been lit in a long time.
+      Rain finds three separate ways through the roof. Seawater is creeping
+      under the shore door, and it is not going back out."
+    exits: [stair_ascent, shore_path]
+    npcs: []
+    items: [rusty_key, sealed_letter]
+    secrets:
+      - "There is a fourth set of wet footprints on these boards, and only three
+         living people have come through this door in a year."
+      - "The stove has not been lit in eleven years. Nobody who lives here needs
+         to be warm."
+
+  stair_ascent:
+    name: "The Spiral Stair"
+    description: "A hundred and eighty iron steps winding up the tower's throat.
+      Someone has scratched a tally into the wall at shoulder height — thousands
+      of marks, one for every night, made by a hand that never got tired."
+    exits: [lighthouse_landing, lamp_room]
+    npcs: []
+    items: [keepers_journal]
+    secrets:
+      - "The tally marks stop abruptly about a third of the way up, then resume
+         in identical handwriting. The gap is roughly a year's worth."
+      - "The stair is dry. It is the only dry thing in the building."
+
+  lamp_room:
+    name: "The Lamp Room"
+    description: "Glass on all sides, streaming with rain. The great lens turns
+      on its bath of mercury, slow and enormous, throwing its beam out into a
+      dark that swallows it whole. It is warm up here, which it should not be."
+    exits: [stair_ascent]
+    npcs: [keeper]
+    items: [lamp_oil]
+    secrets:
+      - "The lamp has no fuel line. The Keeper fills it every night from a can
+         that is always full, and has never once wondered about that."
+      - "From up here, on a clear night, you would be able to see the wreck of
+         the Meridian directly below in the shallows. There has not been a clear
+         night in eleven years."
+
+  shore_path:
+    name: "The Shore Path"
+    description: "A shelf of black rock between the tower and the water, wide
+      enough for one person and generous about it. The sea throws itself at the
+      Reach and falls back, over and over, with the air of something rehearsing."
+    exits: [lighthouse_landing, drowned_chapel, valen_boathouse]
+    npcs: [wrecker]
+    items: [storm_lantern]
+    secrets:
+      - "At the lowest tide of the month, the path continues out to a ridge of
+         timber that is unmistakably a hull."
+      - "Nothing has ever washed up on this stretch. Not weed, not driftwood,
+         not bodies. The sea gives this piece of coast a wide berth."
+
+  drowned_chapel:
+    name: "The Drowned Chapel"
+    description: "A chapel built too near the water and long since half-claimed
+      by it. The nave floods to knee height at high tide and drains through the
+      floor at low. Candles burn in the dry upper galleries, tended daily, and
+      have not gone out within living memory."
+    exits: [shore_path]
+    npcs: [maren, ilva]
+    items: [tide_charm, drowned_ledger]
+    secrets:
+      - "The oath-stone at the altar lists every Warden who ever swore. The
+         Keeper's name is on it, in an entry dated eleven years ago."
+      - "The ledger in the vestry records what the light was originally lit
+         for. No living Warden has read past the first page."
+
+  valen_boathouse:
+    name: "The Valen Boathouse"
+    description: "A long shed in a cove the Reach hides from the open sea. New
+      timber, good hinges, oil lamps that get replaced before they gutter. Inside
+      sits a launch with muffled oarlocks, provisioned and waiting, pointed out."
+    exits: [shore_path]
+    npcs: [corvin, tallow]
+    items: [valen_seal, wax_stub]
+    secrets:
+      - "The launch has been provisioned and re-provisioned for eleven years.
+         The salt beef is changed monthly. Nobody has ever rowed it out."
+      - "Corvin's orders are sealed and he has not opened them. He is waiting
+         for one dark night, and he does not actually know what happens after."
+
+npcs:
+  keeper:
+    name: "The Keeper"
+    role: "Lighthouse keeper of the Reach, eleven years in the post."
+    faction: tide_wardens
+    default_disposition: 10
+    wants: "To keep the light burning tonight, and to be told he is doing well.
+      Underneath that, without ever surfacing it: to be allowed to stop."
+    knows:
+      - "The mechanics of the light, in loving and exhaustive detail."
+      - "Every ship that has passed the Reach in eleven years, by name."
+      - "That the Meridian went down the winter he took the post."
+      - "That House Valen has asked him twice to let the light fail, and that he
+         said no twice."
+    hides:
+      - "That he cannot descend past the halfway mark of the stair, and has not
+         tried in years because trying frightens him."
+      - "That he does not remember the winter the Meridian was lost — only the
+         morning after."
+      - "That he is never hungry, and has stopped noticing that he is never hungry."
+
+  maren:
+    name: "Warden Maren"
+    role: "Senior Tide-Warden of the drowned chapel."
+    faction: tide_wardens
+    default_disposition: 0
+    wants: "To keep the player away from the vestry ledger without ever telling
+      them a single untrue thing about it."
+    knows:
+      - "That the Keeper's name is carved on the oath-stone, dated eleven years back."
+      - "That the oath binds Wardens to truth, and that omission is not falsehood."
+      - "That House Valen have a boathouse in the cove and a man sitting in it."
+    hides:
+      - "That she has read the first page of the ledger and stopped there on purpose."
+      - "That she has known what the Keeper is for nine years and has told no one,
+         including Ilva."
+      - "That she is frightened of what happens to the Reach if the light stops."
+
+  ilva:
+    name: "Novice Ilva"
+    role: "A Tide-Warden of two years, still enthusiastic about it."
+    faction: tide_wardens
+    default_disposition: 20
+    wants: "To be useful, and to be taken seriously by Maren."
+    knows:
+      - "The full text of the oath, which she can recite and likes to."
+      - "That the chapel candles have never gone out, which she finds beautiful."
+      - "That Maren goes to the vestry alone and comes back quiet."
+    hides:
+      - "Nothing deliberately. She is bound to truth and has not yet learned the
+         art of omission, which makes her the most dangerous person here to
+         House Valen and the most useful to the player."
+
+  corvin:
+    name: "Corvin Valen"
+    role: "A minor son of House Valen, posted to the cove and forgotten there."
+    faction: house_valen
+    default_disposition: -10
+    wants: "One dark night, a clean report, and a posting somewhere with fewer
+      gulls. He is not cruel; he is bored, and boredom has made him thorough."
+    knows:
+      - "That his House's salvage rights lapse if the Reach goes a year without a wreck."
+      - "That the Keeper has refused them twice."
+      - "That he was told the launch would be needed within the month — eleven
+         years ago."
+    hides:
+      - "That his orders are still sealed and he has never opened them."
+      - "That he has come to rather like the Keeper, which is a problem."
+      - "That he hired Tallow himself, off the books, and it was not authorised."
+
+  tallow:
+    name: "Tallow"
+    role: "A hedge-wizard on retainer, hired to make weather and paid not to ask."
+    faction: house_valen
+    default_disposition: -5
+    wants: "To be paid, to be believed about the storm, and to leave the Reach
+      alive — in that order until recently, when the order changed."
+    knows:
+      - "That the storm over the Reach is not his doing and never has been."
+      - "That he has been billing House Valen for eleven years for weather he
+         does not make."
+      - "That something under the water objects to being looked at."
+    hides:
+      - "That he is a fraud in every respect except one: he can tell when
+         something is being held in place by will rather than by nature, and the
+         light on this Reach is being held in place by will."
+      - "That he has tried to leave twice and both times walked back into the cove."
+
+  wrecker:
+    name: "The Wrecker"
+    role: "A scavenger who works the Reach and has never once found anything."
+    faction: null
+    default_disposition: 0
+    wants: "A single piece of salvage, after eleven years, to prove the coast is
+      an ordinary coast and he is an ordinary man wasting an ordinary life."
+    knows:
+      - "Every tide, rock and channel on this stretch, precisely."
+      - "That nothing washes up here, and that this is not normal."
+      - "That the Warden called Maren visits the boathouse cove at night, which
+         he finds interesting and has told nobody."
+    hides:
+      - "That he was aboard the Meridian's sister ship and knows what she was
+         carrying."
+      - "That he does not scavenge the Reach for salvage. He is looking for one
+         specific body."
+
+items:
+  rusty_key:
+    name: "a rusty key"
+    description: "Iron, hand-forged, salt-eaten to a fur. Too large for a door
+      and too small for a gate."
+    notes: "Opens the vestry cabinet in the drowned chapel. Nothing else."
+  sealed_letter:
+    name: "a sealed letter"
+    description: "Good paper gone soft with damp. The wax bears three gulls over
+      a wave. It is addressed to the Keeper and has never been opened."
+    notes: "Reads: 'Twice is refusal. A third asking will not be an asking. —V.'"
+  keepers_journal:
+    name: "the Keeper's journal"
+    description: "Eleven years of nightly entries in a steady hand. Weather,
+      shipping, the state of the lens."
+    notes: "The entries for one winter month are written in the same hand but in
+      the past tense, as though copied from somewhere."
+  lamp_oil:
+    name: "a can of lamp oil"
+    description: "A dented tin can with a long spout. It is full. It is always full."
+    notes: "Its weight does not change when poured."
+  storm_lantern:
+    name: "a storm lantern"
+    description: "The Wrecker's own, shuttered on three sides, guttering but game."
+    notes: "The one reliable light on the Reach that nobody swore an oath about."
+  tide_charm:
+    name: "a tide-charm"
+    description: "Knotted cord and a drilled stone, the kind Wardens give to
+      people they have decided to worry about."
+    notes: "Marks the bearer as under Warden protection. NPCs of the Tide-Wardens
+      notice it."
+  drowned_ledger:
+    name: "the vestry ledger"
+    description: "A chapel record book, swollen to twice its bound thickness. The
+      first page states the oath. The rest states the reason for it."
+    notes: "Reading past the first page is the pivot of the whole Reach."
+  valen_seal:
+    name: "a Valen seal-matrix"
+    description: "A brass stamp of three gulls over a wave, worn smooth at the
+      edges from a decade of idle handling."
+    notes: "Anything stamped with this will be believed by anyone who has dealt
+      with House Valen."
+  wax_stub:
+    name: "a stub of sealing wax"
+    description: "Oxblood red, much used, softened by pocket heat."
+    notes: "Pairs with the seal-matrix. Together they can close a letter that was
+      never meant to be closed again."
+
+quests:
+  the_dark_night:
+    name: "The Third Asking"
+    summary: "House Valen has asked the Keeper twice to let the light fail. The
+      letter on the table is the third asking, and it is not a request."
+    stages:
+      unaware: "The player has not yet read the letter or met Corvin."
+      asked: "The player knows House Valen wants the light dark for one night."
+      bargained: "The player has heard Corvin's offer directly."
+      refused: "The player has sided with the light."
+      complied: "The player has agreed to help darken the light."
+    start: unaware
+
+  what_the_keeper_forgot:
+    name: "What the Keeper Forgot"
+    summary: "The Keeper has tended the light for eleven years. He drowned in
+      the first of them."
+    stages:
+      unaware: "No reason to suspect anything about the Keeper."
+      suspicious: "The player has noticed at least one impossibility about him."
+      confirmed: "The player has proof — the oath-stone, the ledger, or the journal."
+      told_him: "The player told the Keeper what he is."
+      kept_silent: "The player learned the truth and chose to let him tend the light."
+    start: unaware
