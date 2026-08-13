@@ -51,14 +51,34 @@ def render_scene(world: World, state: GameState) -> str:
         for npc in scene.npcs.values()
     )
 
+    # Items in play this turn: what is lying here, plus what the player carries.
+    # Both need their canon injected — a letter the player pocketed still has to
+    # say the same thing when they finally read it.
+    in_play = {iid: i for iid, i in scene.items.items() if iid not in held}
+    carried = {iid: world.items[iid] for iid in state.inventory if iid in world.items}
+
+    detail = [
+        prompts.ITEM_DETAIL.format(
+            name=item.name, where=" (carried)" if iid in held else "", description=item.description.strip()
+        )
+        for iid, item in {**in_play, **carried}.items()
+    ]
+    item_notes = [
+        f"- {item.name} — {item.notes.strip()}"
+        for item in {**in_play, **carried}.values()
+        if item.notes.strip()
+    ]
+
     return prompts.SCENE_BLOCK.format(
         location_name=scene.location.name,
         description=scene.location.description.strip(),
         exits=_join([f"{name} [{lid}]" for lid, name in scene.exits.items()]),
         npcs=_join([n.name for n in scene.npcs.values()]),
-        items=_join([i.name for iid, i in scene.items.items() if iid not in held]),
+        items=_join([i.name for i in in_play.values()]),
+        item_detail="\n".join(detail) or f"- {NONE}",
         secrets="\n".join(f"- {s.strip()}" for s in scene.location.secrets) or f"- {NONE}",
         npc_notes=f"\n{npc_notes}" if npc_notes else "",
+        item_notes="\n" + "\n".join(item_notes) if item_notes else "",
     )
 
 

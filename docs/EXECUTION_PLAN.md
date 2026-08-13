@@ -13,14 +13,14 @@ where the build can stall.
 
 ## 0. Build status
 
-Phases R through 6 are **implemented**. 55 tests pass with no network access.
+Phases R through 6 are **implemented**. 59 tests pass with no network access.
 
 What remains is gated on Novita reachability, not on code:
 
 | Gate | State |
 |---|---|
 | G0 — model ids resolved against the live catalog | **Cleared.** Base URL corrected to `https://api.novita.ai/openai`; both roles default to `zai-org/glm-4.7-flash` |
-| G1 — narration reflects state | Open. First run caught a reasoning-model starvation bug; narrator swapped to an instruct model, needs a re-run |
+| G1 — narration reflects state | **Cleared** on `meta-llama/llama-3.3-70b-instruct`. Two bugs found by doing it: reasoning-model starvation, and item canon never being injected |
 | G2 — extractor JSON ≥ 8/10 | Open. Parse, fence-strip and retry paths are tested against canned malformed output |
 | README sample transcript | Open — deliberately left as a marked placeholder rather than hand-written |
 

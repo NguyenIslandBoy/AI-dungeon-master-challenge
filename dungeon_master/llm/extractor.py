@@ -81,11 +81,18 @@ def extract(
                 prompts.EXTRACTOR_SYSTEM,
                 messages,
                 model=model,
-                max_tokens=500,
+                # Headroom for reasoning models, which spend budget thinking
+                # before they emit the JSON at all.
+                max_tokens=900,
                 temperature=0.1,
                 json_mode=client.supports_json_mode(model),
             )
             assert isinstance(raw, str)
+            if not raw.strip():
+                raise ValueError(
+                    f"{model} returned empty content — if it is a reasoning model "
+                    "it may have spent the whole budget thinking"
+                )
             delta = parse_delta(raw)
             log.info("delta (attempt %s): %s", attempt, delta.model_dump(exclude_defaults=True))
             return delta

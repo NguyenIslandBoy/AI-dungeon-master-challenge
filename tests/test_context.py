@@ -43,6 +43,37 @@ def test_taken_items_stop_being_listed_as_lying_around(world, state):
     assert "a rusty key" not in system.split("Items here (not yet taken):")[1].split("\n")[0]
 
 
+def test_item_canon_reaches_the_prompt(world, state):
+    """Without this the narrator invents what a letter says — observed live."""
+    system, _ = context.build(state, world, Transcript(), "I read the letter")
+    assert "The wax bears three gulls over a wave" in system  # description
+    assert "Twice is refusal" in system  # notes — the actual contents
+
+
+def test_carried_items_keep_their_canon_after_pickup(world, state):
+    """A letter the player pocketed must still say the same thing later, even
+    though it has left the scene's item list."""
+    taken, _ = apply_delta(state, StateDelta(add_items=["sealed_letter"]), world)
+    moved, _ = apply_delta(taken, StateDelta(move_to="shore_path"), world)
+
+    system, _ = context.build(moved, world, Transcript(), "I reread the letter")
+    assert "(carried)" in system
+    assert "Twice is refusal" in system
+
+
+def test_item_notes_stay_in_the_dm_only_section(world, state):
+    system, _ = context.build(state, world, Transcript(), "look")
+    # The phrase also appears in hard rule 6, so take the last segment.
+    dm_only = system.split("DM-ONLY NOTES")[-1]
+    # The key's purpose is a DM lever, not something to announce.
+    assert "Opens the vestry cabinet" in dm_only
+
+
+def test_absent_items_bring_no_canon(world, state):
+    system, _ = context.build(state, world, Transcript(), "look")
+    assert "pivot of the whole Reach" not in system  # the ledger, three rooms away
+
+
 def test_relationship_renders_with_sign_and_note(world, state):
     delta = StateDelta(
         relationship_changes=[RelChange(npc_id="keeper", delta=15, note="listened to him")]
