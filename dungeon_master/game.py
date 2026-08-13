@@ -56,7 +56,7 @@ def run_turn(
         # An empty completion is a failure, not a silent turn. Recording it
         # would poison the transcript with a blank DM reply and hand the
         # extractor nothing to work from.
-        log.error("narrator returned no content — check model id and base URL")
+        log.error("narrator returned no content — see the preceding warning for why")
         return TurnResult(state, "", [], failed=True)
 
     # Extraction runs on the *complete* narration — extracting from a partial

@@ -29,7 +29,7 @@ the display names on the website are not API ids. If a default has been retired:
 
 ```bash
 uv run python -m dungeon_master.cli --models   # list what is actually served
-uv run pytest -q                               # 54 tests, no network required
+uv run pytest -q                               # 55 tests, no network required
 ```
 
 ### In-game commands
@@ -202,7 +202,7 @@ with more time — as a *supplement* to extraction, not a replacement.
 ### Two roles, one model — but still two settings
 
 `NARRATOR_MODEL` and `EXTRACTOR_MODEL` both default to
-`deepseek/deepseek-v4-flash-0731`. They are separate settings anyway, and that is
+`zai-org/glm-4.7-flash`. They are separate settings anyway, and that is
 the point: the roles have genuinely different requirements — one wants
 temperature and prose quality, the other wants determinism and valid JSON — so
 either can move independently the moment the other stops being a good fit. Today
@@ -284,7 +284,7 @@ dungeon_master/
   context.py   prompt assembly
   game.py      one turn of the lifecycle, no I/O
   cli.py       game loop, the only module that prints
-tests/         54 tests, no network required
+tests/         55 tests, no network required
 docs/          ARCHITECTURE.md, DECISIONS.md, PLAN.md, EXECUTION_PLAN.md
 ```
 

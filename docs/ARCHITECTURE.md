@@ -270,8 +270,8 @@ calling are supported.</cite>
 
 | Role | Default | Rationale |
 |---|---|---|
-| **Narrator** | `deepseek/deepseek-v4-flash-0731` | Verified served; cheap, long context, solid prose |
-| **Extractor** | `deepseek/deepseek-v4-flash-0731` | Same model by default. Kept a separate setting so the extractor can move to a cheaper or more JSON-reliable model with no code change |
+| **Narrator** | `zai-org/glm-4.7-flash` | Verified served; cheap, long context, solid prose |
+| **Extractor** | `zai-org/glm-4.7-flash` | Same model by default. Kept a separate setting so the extractor can move to a cheaper or more JSON-reliable model with no code change |
 
 Alternatives worth a swap if narration feels flat: `moonshotai/kimi-k2.5` (strong
 creative writing, pricier) or `zai-org/glm-4.7`. For the extractor, `qwen3-coder-30b-a3b`

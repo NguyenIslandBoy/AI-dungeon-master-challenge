@@ -18,7 +18,7 @@ from .client import LLMClient, LLMError
 
 log = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "deepseek/deepseek-v4-flash-0731"
+DEFAULT_MODEL = "zai-org/glm-4.7-flash"
 FENCE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.MULTILINE)
 
 

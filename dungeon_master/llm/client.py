@@ -89,17 +89,27 @@ class LLMClient:
         would print the model's private deliberation to the player, so it is
         counted and logged but never emitted.
         """
-        thought = 0
+        thought = spoken = 0
         for chunk in chunks:
             if not chunk.choices:
                 continue
             delta = chunk.choices[0].delta
             if piece := getattr(delta, "content", None):
+                spoken += 1
                 yield piece
             elif getattr(delta, "reasoning_content", None):
                 thought += 1
-        if thought:
-            log.info("stream carried %s reasoning-only chunks", thought)
+
+        if thought and not spoken:
+            log.warning(
+                "the narrator model spent its entire token budget reasoning (%s "
+                "chunks) and never emitted prose. This model is a reasoning "
+                "model; set NARRATOR_MODEL to a non-reasoning instruct model "
+                "(e.g. zai-org/glm-4.7-flash) — see --models",
+                thought,
+            )
+        elif thought:
+            log.info("stream carried %s reasoning chunks before prose", thought)
 
     # -- catalog ------------------------------------------------------------
     def list_models(self) -> list[str]:

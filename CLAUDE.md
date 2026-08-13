@@ -81,8 +81,8 @@ client = OpenAI(
 
 | Role | Default | Why |
 |---|---|---|
-| Narrator | `deepseek/deepseek-v4-flash-0731` | Cheap, long context, solid prose |
-| Extractor | `deepseek/deepseek-v4-flash-0731` | Same model by default; separate setting so it can be swapped |
+| Narrator | `zai-org/glm-4.7-flash` | Cheap, long context, solid prose |
+| Extractor | `zai-org/glm-4.7-flash` | Same model by default; separate setting so it can be swapped |
 
 **Never hardcode a model ID.** Novita's catalog changes often and display names on
 the website are not API ids. Confirm ids at runtime:

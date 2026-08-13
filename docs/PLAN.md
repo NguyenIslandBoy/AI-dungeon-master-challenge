@@ -18,8 +18,8 @@ Tick boxes as you go. If a phase overruns by >15 min, take from the cut list
       ```
       NOVITA_API_KEY=
       NOVITA_BASE_URL=https://api.novita.ai/openai
-      NARRATOR_MODEL=deepseek/deepseek-v4-flash-0731
-      EXTRACTOR_MODEL=deepseek/deepseek-v4-flash-0731
+      NARRATOR_MODEL=zai-org/glm-4.7-flash
+      EXTRACTOR_MODEL=zai-org/glm-4.7-flash
       ```
 
 - [x] **Verify the model ids before building anything on them.** Display names on

@@ -7,7 +7,7 @@ from collections.abc import Iterator
 
 from .client import LLMClient
 
-DEFAULT_MODEL = "deepseek/deepseek-v4-flash-0731"
+DEFAULT_MODEL = "zai-org/glm-4.7-flash"
 
 
 def narrator_model() -> str:

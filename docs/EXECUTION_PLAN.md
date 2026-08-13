@@ -13,14 +13,14 @@ where the build can stall.
 
 ## 0. Build status
 
-Phases R through 6 are **implemented**. 54 tests pass with no network access.
+Phases R through 6 are **implemented**. 55 tests pass with no network access.
 
 What remains is gated on Novita reachability, not on code:
 
 | Gate | State |
 |---|---|
-| G0 — model ids resolved against the live catalog | **Cleared.** Base URL corrected to `https://api.novita.ai/openai`; both roles default to `deepseek/deepseek-v4-flash-0731` |
-| G1 — narration reflects state | Open. Needs one real turn. The context builder it depends on is tested offline |
+| G0 — model ids resolved against the live catalog | **Cleared.** Base URL corrected to `https://api.novita.ai/openai`; both roles default to `zai-org/glm-4.7-flash` |
+| G1 — narration reflects state | Open. First run caught a reasoning-model starvation bug; narrator swapped to an instruct model, needs a re-run |
 | G2 — extractor JSON ≥ 8/10 | Open. Parse, fence-strip and retry paths are tested against canned malformed output |
 | README sample transcript | Open — deliberately left as a marked placeholder rather than hand-written |
 
@@ -111,7 +111,11 @@ served — the stale value was not a model id but the **base URL**: it is
 That would have 404'd every reviewer on the first turn, which is exactly the
 class of failure this gate exists to catch.
 
-Shipped defaults are now `deepseek/deepseek-v4-flash-0731` for both roles.
+Shipped defaults are now `zai-org/glm-4.7-flash` for both roles. The first
+choice, `deepseek/deepseek-v4-flash-0731`, was served and answered — but is a
+reasoning model, and spent its entire token budget in `reasoning_content`
+without emitting a word of prose. Gate G1 caught that on the first real turn,
+which is precisely what it is for.
 
 *If the key is delayed:* Phases 1, 2, and most of 3 need no network. Write a
 `StubClient` in `tests/` that returns canned prose and canned delta JSON, and
