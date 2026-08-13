@@ -65,7 +65,12 @@ class LLMClient:
         for attempt in range(1, self.attempts + 1):
             try:
                 if stream:
-                    return self._stream(payload)
+                    # Open the stream *here*, inside the try. `_iter` is a
+                    # generator, so returning it directly would defer the HTTP
+                    # call until first iteration — outside this retry block,
+                    # where transport errors escape unwrapped.
+                    chunks = self._client.chat.completions.create(**payload, stream=True)
+                    return self._iter(chunks)
                 response = self._client.chat.completions.create(**payload)
                 return response.choices[0].message.content or ""
             except RETRYABLE as exc:  # noqa: PERF203 - retry is the point
@@ -75,11 +80,26 @@ class LLMClient:
                     time.sleep(2**attempt)
         raise LLMError(str(last)) from last
 
-    def _stream(self, payload: dict) -> Iterator[str]:
-        chunks = self._client.chat.completions.create(**payload, stream=True)
+    @staticmethod
+    def _iter(chunks) -> Iterator[str]:
+        """Yield visible content only.
+
+        Reasoning models put their scratchpad in `reasoning_content` and leave
+        `content` empty until they are done thinking. Yielding the scratchpad
+        would print the model's private deliberation to the player, so it is
+        counted and logged but never emitted.
+        """
+        thought = 0
         for chunk in chunks:
-            if chunk.choices and (piece := chunk.choices[0].delta.content):
+            if not chunk.choices:
+                continue
+            delta = chunk.choices[0].delta
+            if piece := getattr(delta, "content", None):
                 yield piece
+            elif getattr(delta, "reasoning_content", None):
+                thought += 1
+        if thought:
+            log.info("stream carried %s reasoning-only chunks", thought)
 
     # -- catalog ------------------------------------------------------------
     def list_models(self) -> list[str]:

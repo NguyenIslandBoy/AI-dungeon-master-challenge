@@ -70,6 +70,17 @@ def test_a_narrator_failure_costs_the_turn_not_the_session(world, state):
     assert transcript.turns == []  # a failed turn is not remembered as one
 
 
+def test_an_empty_completion_is_a_failed_turn_not_a_silent_one(world, state):
+    """A blank narration must not reach the transcript — it would poison memory
+    with an empty DM reply and give the extractor nothing to read."""
+    transcript = Transcript()
+    result = run_turn(StubClient(""), world, state, transcript, "I look around")
+
+    assert result.failed is True
+    assert transcript.turns == []
+    assert result.state.turn_count == 0
+
+
 def test_an_early_preference_reaches_a_later_prompt(world, state):
     """The brief's worked example: 'I don't trust wizards' must still be shaping
     the prompt many turns later, without depending on the summariser."""

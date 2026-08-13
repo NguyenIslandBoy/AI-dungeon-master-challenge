@@ -52,6 +52,13 @@ def run_turn(
         log.error("narrator failed: %s", exc)
         return TurnResult(state, "", [], failed=True)
 
+    if not narration.strip():
+        # An empty completion is a failure, not a silent turn. Recording it
+        # would poison the transcript with a blank DM reply and hand the
+        # extractor nothing to work from.
+        log.error("narrator returned no content — check model id and base URL")
+        return TurnResult(state, "", [], failed=True)
+
     # Extraction runs on the *complete* narration — extracting from a partial
     # stream silently drops whatever the last sentence established.
     delta = extract(client, world, state, player_input, narration)
