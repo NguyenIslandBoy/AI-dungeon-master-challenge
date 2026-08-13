@@ -12,6 +12,8 @@ from rich.rule import Rule
 from . import context
 from .game import run_turn
 from .llm.client import LLMClient, LLMError
+from .llm.extractor import extractor_model
+from .llm.narrator import narrator_model
 from .memory.transcript import Transcript
 from .state.store import SAVE_PATH, load, new_game, save
 from .world.loader import WorldValidationError, load_world
@@ -113,6 +115,11 @@ def play() -> int:
     console.print(Rule(f"[bold]{world.meta.name}[/bold]"))
     console.print(world.meta.opening_scene.strip())
     console.print(Rule(style="dim"))
+    # Show the models actually in effect. .env is gitignored, so what a reviewer
+    # is running is not necessarily what .env.example says.
+    console.print(
+        f"[dim]narrator: {narrator_model()} · extractor: {extractor_model()}[/dim]"
+    )
     console.print(HELP)
 
     while True:
@@ -138,7 +145,8 @@ def play() -> int:
         if result.failed:
             console.print(
                 "[dim]The storm swallows the moment. Nothing has changed. "
-                "Try again.[/dim]"
+                "Try again.[/dim]\n[dim](if this repeats, the reason is in "
+                "game.log)[/dim]"
             )
             continue
 

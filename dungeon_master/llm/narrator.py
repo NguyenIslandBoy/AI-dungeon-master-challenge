@@ -23,7 +23,9 @@ def narrate(
         system,
         messages,
         model=narrator_model(),
-        max_tokens=500,
+        # Generous on purpose: instruct models stop when done, but a model
+        # that thinks briefly must still have room left to actually speak.
+        max_tokens=1200,
         temperature=0.85,
         stream=stream,
     )

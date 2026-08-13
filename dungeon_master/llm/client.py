@@ -70,7 +70,7 @@ class LLMClient:
                     # call until first iteration — outside this retry block,
                     # where transport errors escape unwrapped.
                     chunks = self._client.chat.completions.create(**payload, stream=True)
-                    return self._iter(chunks)
+                    return self._iter(chunks, model)
                 response = self._client.chat.completions.create(**payload)
                 return response.choices[0].message.content or ""
             except RETRYABLE as exc:  # noqa: PERF203 - retry is the point
@@ -81,7 +81,7 @@ class LLMClient:
         raise LLMError(str(last)) from last
 
     @staticmethod
-    def _iter(chunks) -> Iterator[str]:
+    def _iter(chunks, model: str = "?") -> Iterator[str]:
         """Yield visible content only.
 
         Reasoning models put their scratchpad in `reasoning_content` and leave
@@ -102,14 +102,17 @@ class LLMClient:
 
         if thought and not spoken:
             log.warning(
-                "the narrator model spent its entire token budget reasoning (%s "
-                "chunks) and never emitted prose. This model is a reasoning "
-                "model; set NARRATOR_MODEL to a non-reasoning instruct model "
-                "(e.g. zai-org/glm-4.7-flash) — see --models",
+                "NARRATOR_MODEL=%s is a reasoning model: it spent its entire "
+                "token budget on %s reasoning chunks and never emitted prose. "
+                "Set NARRATOR_MODEL in your .env (NOT .env.example — .env is "
+                "gitignored and a pull will not update it) to an instruct-tuned "
+                "model, e.g. meta-llama/llama-3.3-70b-instruct or "
+                "moonshotai/kimi-k2-instruct. Run --models to see the catalog.",
+                model,
                 thought,
             )
         elif thought:
-            log.info("stream carried %s reasoning chunks before prose", thought)
+            log.info("%s: %s reasoning chunks before prose", model, thought)
 
     # -- catalog ------------------------------------------------------------
     def list_models(self) -> list[str]:
