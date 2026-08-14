@@ -29,6 +29,7 @@ def _setup_logging() -> None:
         filename="game.log",
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        encoding="utf-8",
     )
 
 

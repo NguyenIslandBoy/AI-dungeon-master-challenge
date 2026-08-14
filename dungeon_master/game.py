@@ -34,6 +34,34 @@ class TurnResult(NamedTuple):
     extraction_failed: bool = False
 
 
+def corrections_from(rejected: list[str], state: GameState, world: World) -> list[str]:
+    """Turn validator rejections into instructions the narrator can act on.
+
+    Only rejections the player would have *seen* in the prose become corrections.
+    Bookkeeping ones — a de-duplicated fact, an out-of-scene item that was still
+    allowed — are logged but never shown to the narrator, because nothing in the
+    story needs to change for them.
+    """
+    here = world.locations[state.current_location].name
+    out: list[str] = []
+    for reason in rejected:
+        if reason.startswith("move_to:"):
+            out.append(
+                f"The player did NOT travel anywhere. They are still in {here}. "
+                "Any journey, arrival, or new room you described did not happen."
+            )
+        elif reason.startswith("add_items: unknown item"):
+            item = reason.split("'")[1] if "'" in reason else "that object"
+            out.append(
+                f"There is no such thing as '{item}' in this world. The player "
+                "does not have one and never did. Stop referring to it."
+            )
+        elif reason.startswith("remove_items:"):
+            item = reason.split("'")[1] if "'" in reason else "that object"
+            out.append(f"The player still has '{item}'. They did not lose or give it away.")
+    return out
+
+
 def run_turn(
     client,
     world: World,
@@ -70,7 +98,12 @@ def run_turn(
     if delta is not None:
         state, rejected = apply_delta(state, delta, world)
         for reason in rejected:
-            log.info("rejected — %s", reason)
+            log.info("rejected - %s", reason)  # ASCII: this log gets read on Windows
+
+    # Replace, never accumulate: a correction is owed for exactly one turn.
+    state.pending_corrections = corrections_from(rejected, state, world)
+    if state.pending_corrections:
+        log.info("correcting narrator: %s", state.pending_corrections)
 
     state.turn_count += 1
     transcript.append(player_input, narration)

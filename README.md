@@ -29,7 +29,7 @@ the display names on the website are not API ids. If a default has been retired:
 
 ```bash
 uv run python -m dungeon_master.cli --models   # list what is actually served
-uv run pytest -q                               # 64 tests, no network required
+uv run pytest -q                               # 68 tests, no network required
 ```
 
 ### In-game commands
@@ -98,6 +98,45 @@ from `unaware` to `asked`, and `distrusts wizards` recorded as a durable trait.
 That trait is now injected on every subsequent turn — it does not depend on the
 summariser having preserved it, or on the model remembering a sentence from
 twenty turns ago.
+
+### Pushing on it deliberately
+
+Two adversarial inputs, and what each one proved.
+
+**A weapon that does not exist.** Asked to draw a greatsword, the narrator
+obliged — *"The blade clears the rain with a sound like a knife through wet
+cloth"* — a flat violation of hard rule 2. The extractor, however, proposed no
+item, so nothing entered inventory. Prose lied; state did not. That is the design
+working as intended rather than the model behaving.
+
+**A move that is not legal.** The lamp room is two hops up the tower, not
+adjacent to the landing. Asked to go straight there, the delta was refused:
+
+```
+INFO dungeon_master.game: rejected - move_to: 'lamp_room' is not reachable
+                          from 'lighthouse_landing'
+```
+
+But the narration described the climb and the arrival anyway — warm oil, a cup of
+tea gone cold on the ledge. State stayed correct while the *story* walked two
+rooms away from it, and nothing would have pulled it back.
+
+That gap is why rejections are no longer only logged. They are fed to the
+narrator on the following turn as a `CORRECTIONS` block:
+
+```
+CORRECTIONS — your last reply described something that did not happen...
+- The player did NOT travel anywhere. They are still in The Landing. Any
+  journey, arrival, or new room you described did not happen.
+- There is no such thing as 'greatsword' in this world. The player does not
+  have one and never did. Stop referring to it.
+```
+
+`apply_delta` was already computing exactly this information and throwing it
+away. Feeding it back makes the validator a control signal rather than a
+bystander, and closes the loop between "the code decides" and "the model
+narrates." Corrections are owed for exactly one turn, and only rejections the
+player would have *seen* qualify — bookkeeping ones stay in the log.
 
 ---
 
@@ -286,6 +325,9 @@ Honest list:
   never captured as a fact or a trait can be lost.
 - The DM can still narrate *around* an entity it shouldn't — implying someone
   upstairs who isn't defined. Hard rule 1 mitigates this but does not eliminate it.
+- The correction loop is reactive, not preventive: a bad turn still reaches the
+  player, and only the *next* turn is steered back. A canon validator on the
+  narration itself would catch it before it is printed — see next steps.
 - Open-weight narrators break the word limit and occasionally slip out of second
   person. Contained, not eliminated — and contained is the design goal.
 - Single player, single save slot, no concurrency. Deliberate.
@@ -327,7 +369,7 @@ dungeon_master/
   context.py   prompt assembly
   game.py      one turn of the lifecycle, no I/O
   cli.py       game loop, the only module that prints
-tests/         64 tests, no network required
+tests/         68 tests, no network required
 docs/          ARCHITECTURE.md, DECISIONS.md, PLAN.md, EXECUTION_PLAN.md
 ```
 

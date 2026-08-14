@@ -27,6 +27,9 @@ class GameState(BaseModel):
     established_facts: list[str] = Field(default_factory=list)  # DM assertions it must honour
     player_traits: list[str] = Field(default_factory=list)  # "distrusts wizards"
     turn_count: int = 0
+    # Corrections owed to the narrator because last turn's prose described
+    # something the validator refused. Injected once, then replaced.
+    pending_corrections: list[str] = Field(default_factory=list)
 
 
 class RelChange(BaseModel):

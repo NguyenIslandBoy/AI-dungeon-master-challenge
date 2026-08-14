@@ -55,6 +55,60 @@ def test_a_short_playthrough_keeps_state_exact(world, state):
     assert state.visited == ["lighthouse_landing", "shore_path"]
 
 
+def test_a_rejected_move_corrects_the_narrator_next_turn(world, state):
+    """Observed live: the move to the lamp room was correctly rejected, but the
+    prose described the player climbing the stair and arriving anyway. State
+    stayed right while the story walked off without it. The validator's
+    rejections are the only signal that can pull it back."""
+    transcript = Transcript()
+    client = StubClient(
+        "You climb the stair. The lamp room waits, full of light.",
+        json.dumps({"move_to": "lamp_room"}),
+    )
+    result = run_turn(client, world, state, transcript, "I take the stair to the lamp room")
+
+    assert result.state.current_location == "lighthouse_landing"
+    assert result.state.pending_corrections
+    assert "did NOT travel" in result.state.pending_corrections[0]
+
+    system, _ = context.build(result.state, world, transcript, "what now?")
+    assert "CORRECTIONS" in system
+    assert "The Landing" in system
+
+
+def test_a_hallucinated_item_is_disowned_to_the_narrator(world, state):
+    client = StubClient("You draw your greatsword.", json.dumps({"add_items": ["greatsword"]}))
+    result = run_turn(client, world, state, Transcript(), "I draw my greatsword")
+
+    assert result.state.inventory == []
+    assert any("no such thing as 'greatsword'" in c for c in result.state.pending_corrections)
+
+
+def test_corrections_are_owed_for_exactly_one_turn(world, state):
+    transcript = Transcript()
+    bad = StubClient("You stride into the lamp room.", json.dumps({"move_to": "lamp_room"}))
+    state = run_turn(bad, world, state, transcript, "up to the lamp room").state
+    assert state.pending_corrections
+
+    good = StubClient("You stay where you are.", json.dumps({}))
+    state = run_turn(good, world, state, transcript, "I wait").state
+    assert state.pending_corrections == []
+
+    system, _ = context.build(state, world, transcript, "now what?")
+    assert "CORRECTIONS" not in system
+
+
+def test_bookkeeping_rejections_never_reach_the_narrator(world, state):
+    """An out-of-scene item is allowed and merely logged; nothing in the story
+    needs to change, so the narrator must not be told to retract anything."""
+    client = StubClient("She presses a charm into your hand.", json.dumps({"add_items": ["tide_charm"]}))
+    result = run_turn(client, world, state, Transcript(), "I accept the charm")
+
+    assert "tide_charm" in result.state.inventory
+    assert any("was not in scene" in r for r in result.rejected)  # logged
+    assert result.state.pending_corrections == []  # but not a correction
+
+
 def test_a_narrator_failure_costs_the_turn_not_the_session(world, state):
     """The game loop never dies from an LLM failure. That is the robustness bar."""
 

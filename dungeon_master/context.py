@@ -119,6 +119,14 @@ def build_system(world: World, state: GameState) -> str:
         render_scene(world, state),
         render_state(world, state),
     ]
+    if state.pending_corrections:
+        # The validator's rejections are not just a log line — they are the only
+        # signal that can pull the narration back in line with the world.
+        sections.append(
+            prompts.CORRECTION_BLOCK.format(
+                corrections="\n".join(f"- {c}" for c in state.pending_corrections)
+            )
+        )
     return "\n\n".join(sections)
 
 
