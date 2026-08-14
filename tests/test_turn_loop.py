@@ -43,7 +43,8 @@ def test_a_short_playthrough_keeps_state_exact(world, state):
     assert state.current_location == "shore_path"
     assert state.quest_flags["the_dark_night"] == "asked"
 
-    state, _, rejected, _ = run_turn(client, world, state, transcript, "I look around the rocks")
+    result = run_turn(client, world, state, transcript, "I look around the rocks")
+    state, rejected = result.state, result.rejected
     # Prose said sword. State says no sword. State wins.
     assert state.inventory == ["sealed_letter"]
     assert state.current_location == "shore_path"
@@ -68,6 +69,26 @@ def test_a_narrator_failure_costs_the_turn_not_the_session(world, state):
     assert result.failed is True
     assert result.state == before  # nothing moved, nothing lost
     assert transcript.turns == []  # a failed turn is not remembered as one
+
+
+def test_a_dropped_delta_is_reported_not_swallowed(world, state):
+    """Dropping an unusable delta is correct. Doing it silently is not — the game
+    would narrate plausibly for twenty turns while tracking nothing."""
+    transcript = Transcript()
+    client = StubClient("The rain keeps on.", "not json", "still not json")
+    result = run_turn(client, world, state, transcript, "I take the key")
+
+    assert result.failed is False  # the turn itself succeeded
+    assert result.extraction_failed is True  # but no state moved
+    assert result.state.inventory == []
+    assert transcript.turns[0].dm == "The rain keeps on."  # prose still remembered
+
+
+def test_a_successful_delta_does_not_flag_extraction_failure(world, state):
+    client = StubClient("You take it.", json.dumps({"add_items": ["rusty_key"]}))
+    result = run_turn(client, world, state, Transcript(), "I take the key")
+    assert result.extraction_failed is False
+    assert result.state.inventory == ["rusty_key"]
 
 
 def test_an_empty_completion_is_a_failed_turn_not_a_silent_one(world, state):

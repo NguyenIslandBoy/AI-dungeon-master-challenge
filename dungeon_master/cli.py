@@ -150,6 +150,14 @@ def play() -> int:
             )
             continue
 
+        if result.extraction_failed:
+            # Silently tracking nothing is worse than an ugly line on screen.
+            console.print(
+                "[yellow dim]⚠ state was not updated this turn — the extractor "
+                "returned nothing usable. Check EXTRACTOR_MODEL (reasoning models "
+                "often starve here) and see game.log.[/yellow dim]"
+            )
+
         state = result.state
         save(state, transcript)
 

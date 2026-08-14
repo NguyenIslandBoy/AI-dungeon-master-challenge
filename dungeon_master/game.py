@@ -28,6 +28,10 @@ class TurnResult(NamedTuple):
     narration: str
     rejected: list[str]
     failed: bool = False
+    # Extraction returned nothing usable, so this turn changed no state. Dropping
+    # the delta is the right call — but doing it silently is not: the game would
+    # go on narrating plausibly while quietly tracking nothing.
+    extraction_failed: bool = False
 
 
 def run_turn(
@@ -71,4 +75,4 @@ def run_turn(
     state.turn_count += 1
     transcript.append(player_input, narration)
     maybe_compress(client, transcript)
-    return TurnResult(state, narration, rejected)
+    return TurnResult(state, narration, rejected, extraction_failed=delta is None)
