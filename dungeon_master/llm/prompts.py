@@ -162,6 +162,10 @@ up from his nets, and looks away again."
 Return JSON only. No prose, no markdown fences, no explanation."""
 
 EXTRACTOR_USER = """\
+ALREADY CANON — these are established world facts. The narrator restating any of
+them is NOT a new fact. Do not put them, or rephrasings of them, in new_facts.
+{canon}
+
 ALLOWED IDS
 locations: {locations}
 reachable from here: {exits}

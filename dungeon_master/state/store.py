@@ -6,6 +6,7 @@ This module is pure apart from `save`/`load`. No LLM calls, no I/O in the hot pa
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from ..memory.transcript import Transcript
@@ -26,19 +27,61 @@ def _clamp(value: int, low: int = -100, high: int = 100) -> int:
     return max(low, min(high, value))
 
 
-def _append_capped(existing: list[str], new: list[str], cap: int) -> list[str]:
-    """De-duplicate case-insensitively and keep the most recent `cap` entries.
+STOPWORDS = frozenset(
+    "a an the and or but of to in on at for with without is are was were has have "
+    "had that this it its as by from not no been being he she they them his her".split()
+)
+# Deliberately conservative, and calibrated against a real session: "the light
+# has burned every night for eleven years" vs "the light above has burned
+# steadily for 11 years" scores 0.67. The extractor prompt is the primary defence
+# against canon echoes; this is the net under it, and every suppression is logged.
+NEAR_DUPLICATE_RATIO = 0.6
 
-    State is injected in full every turn, so unbounded growth is a context leak.
+
+def _significant(text: str) -> set[str]:
+    words = re.findall(r"[a-z0-9]+", text.lower())
+    # "11" and "eleven" are the same claim to a reader; normalise small numerals
+    # so a rephrased fact is recognised as the fact it already is.
+    numerals = {"eleven": "11", "three": "3", "four": "4", "two": "2", "one": "1"}
+    return {numerals.get(w, w) for w in words if w not in STOPWORDS}
+
+
+def _is_near_duplicate(candidate: str, existing: list[str]) -> bool:
+    """True if `candidate` mostly restates something already recorded.
+
+    Exact matching is not enough in practice: an extractor will happily record
+    "the light has burned for eleven years" and "the light above has burned
+    steadily for 11 years" as two separate facts, and the ledger is injected in
+    full every turn.
     """
-    out = list(existing)
-    seen = {e.strip().lower() for e in out}
+    words = _significant(candidate)
+    if not words:
+        return True
+    return any(
+        len(words & _significant(prior)) / len(words) >= NEAR_DUPLICATE_RATIO
+        for prior in existing
+    )
+
+
+def _append_capped(
+    existing: list[str], new: list[str], cap: int, label: str = ""
+) -> tuple[list[str], list[str]]:
+    """De-duplicate (including near-duplicates) and keep the most recent `cap`.
+
+    Returns the new list plus a rejection reason for anything suppressed —
+    de-duplication is a heuristic, so it reports itself rather than quietly
+    dropping something a reader might have wanted.
+    """
+    out, notes = list(existing), []
     for entry in new:
         entry = entry.strip()
-        if entry and entry.lower() not in seen:
+        if not entry:
+            continue
+        if _is_near_duplicate(entry, out):
+            notes.append(f"{label}: '{entry}' restates something already recorded")
+        else:
             out.append(entry)
-            seen.add(entry.lower())
-    return out[-cap:]
+    return out[-cap:], notes
 
 
 def apply_delta(
@@ -103,7 +146,10 @@ def apply_delta(
             )
         rel.disposition = _clamp(rel.disposition + change.delta)
         if change.note:
-            rel.notes = _append_capped(rel.notes, [change.note], MAX_NOTES_PER_NPC)
+            rel.notes, note_dupes = _append_capped(
+                rel.notes, [change.note], MAX_NOTES_PER_NPC, f"note[{change.npc_id}]"
+            )
+            rejected += note_dupes
         new.relationships[change.npc_id] = rel
 
     # --- quests -------------------------------------------------------------
@@ -117,10 +163,13 @@ def apply_delta(
             new.quest_flags[quest_id] = stage
 
     # --- narrative ledgers --------------------------------------------------
-    new.established_facts = _append_capped(
-        new.established_facts, delta.new_facts, MAX_FACTS
+    new.established_facts, fact_notes = _append_capped(
+        new.established_facts, delta.new_facts, MAX_FACTS, "new_facts"
     )
-    new.player_traits = _append_capped(new.player_traits, delta.new_traits, MAX_TRAITS)
+    new.player_traits, trait_notes = _append_capped(
+        new.player_traits, delta.new_traits, MAX_TRAITS, "new_traits"
+    )
+    rejected += fact_notes + trait_notes
 
     return new, rejected
 

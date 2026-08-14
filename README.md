@@ -29,7 +29,7 @@ the display names on the website are not API ids. If a default has been retired:
 
 ```bash
 uv run python -m dungeon_master.cli --models   # list what is actually served
-uv run pytest -q                               # 61 tests, no network required
+uv run pytest -q                               # 64 tests, no network required
 ```
 
 ### In-game commands
@@ -42,19 +42,62 @@ uv run pytest -q                               # 61 tests, no network required
 
 ---
 
-## A sample turn
+## A sample session
 
-<!-- ⚠️ PLACEHOLDER — replace with a REAL captured transcript before submitting.
-     Do not hand-write one; play it and paste it. Run the demo script in
-     docs/EXECUTION_PLAN.md §8, which is designed to show, in order:
-       1. an early stated preference being recorded as a trait
-       2. that trait visibly shaping a later scene (meet Tallow the hedge-wizard)
-       3. /state proving inventory + location + relationships are exact
-       4. a hallucinated item being rejected — grep game.log for "rejected —"
-     Aim for ~15 lines. Trim the middle, never the /state dump. -->
+Real transcript, trimmed for length. Narrator `inclusionai/ling-3.0-flash`,
+extractor `meta-llama/llama-3.3-70b-instruct`.
 
-_To be captured from a real playthrough — see the demo script in
-[`docs/EXECUTION_PLAN.md`](docs/EXECUTION_PLAN.md) §8._
+```
+> I pick up the letter and break the seal
+
+You peel the wax. It crumbles like old skin. The paper inside is soft as
+cloth, the ink barely holding its shape.
+
+    Twice is refusal. A third asking will not be an asking. —V.
+
+Three gulls and a wave stare up at you from the ruined wax. The words sit on
+the page with a strange finality, as if whoever wrote them has said this
+before — twice already — and knows the count matters.
+```
+
+That text is not improvised. It is the `notes` field of `sealed_letter` in
+`world.yaml`, injected because the item is in the scene. Before item canon was
+wired into the context builder, this same model invented a midnight meeting at a
+chapel instead — an early bug, and a good illustration of why the bible has to
+reach the prompt rather than merely exist.
+
+```
+> I pocket the key too. And I'll say this now — I don't trust wizards. Never have.
+
+You say you don't trust wizards. The word hangs in the salt air and nothing
+answers it. The lighthouse has no wizard — only a Keeper, a title that means
+one thing here and something else to the Tide-Wardens. They will not say what.
+You have not earned their trust yet, and they will not offer it.
+```
+
+The Tide-Wardens are sworn to truth and expert at omission — one line in their
+prompt block. "They will not say what" is that rule surfacing on its own.
+
+```
+> /state
+╭───────────────────────── game state ──────────────────────────╮
+│ Location: The Landing                                         │
+│ Inventory: a sealed letter, a rusty key                       │
+│ Places visited: The Landing                                   │
+│ Quests: The Third Asking: The player knows House Valen wants  │
+│         the light dark for one night.                         │
+│         What the Keeper Forgot: No reason to suspect anything  │
+│         about the Keeper.                                     │
+│ Player traits: distrusts wizards                              │
+│ Turn: 2                                                       │
+╰───────────────────────────────────────────────────────────────╯
+```
+
+Two turns of prose, and the ledger is exact: both items held, the quest advanced
+from `unaware` to `asked`, and `distrusts wizards` recorded as a durable trait.
+That trait is now injected on every subsequent turn — it does not depend on the
+summariser having preserved it, or on the model remembering a sentence from
+twenty turns ago.
 
 ---
 
@@ -284,7 +327,7 @@ dungeon_master/
   context.py   prompt assembly
   game.py      one turn of the lifecycle, no I/O
   cli.py       game loop, the only module that prints
-tests/         61 tests, no network required
+tests/         64 tests, no network required
 docs/          ARCHITECTURE.md, DECISIONS.md, PLAN.md, EXECUTION_PLAN.md
 ```
 

@@ -120,6 +120,36 @@ def test_traits_and_facts_deduplicate(state, world):
     assert twice.established_facts == ["the stove is cold"]
 
 
+def test_rephrased_facts_are_recognised_as_duplicates(state, world):
+    """These three came out of one real 2-turn session. The first and third are
+    the same claim, and the ledger is injected in full every turn."""
+    observed = [
+        "the light has burned every night for eleven years without going dark",
+        "the lighthouse has not had a lit stove in 11 years",
+        "the light above has burned steadily for 11 years",
+    ]
+    new, _ = apply_delta(state, StateDelta(new_facts=observed), world)
+    assert len(new.established_facts) == 2
+    assert "the light above has burned steadily for 11 years" not in new.established_facts
+
+
+def test_distinct_facts_are_both_kept(state, world):
+    delta = StateDelta(
+        new_facts=[
+            "the vestry cabinet has been forced open",
+            "Maren agreed to meet the player at low tide",
+        ]
+    )
+    new, _ = apply_delta(state, delta, world)
+    assert len(new.established_facts) == 2
+
+
+def test_traits_survive_rewording_without_stacking(state, world):
+    once, _ = apply_delta(state, StateDelta(new_traits=["distrusts wizards"]), world)
+    twice, _ = apply_delta(once, StateDelta(new_traits=["Distrusts Wizards."]), world)
+    assert twice.player_traits == ["distrusts wizards"]
+
+
 def test_facts_are_capped(state, world):
     delta = StateDelta(new_facts=[f"fact {i}" for i in range(50)])
     new, _ = apply_delta(state, delta, world)

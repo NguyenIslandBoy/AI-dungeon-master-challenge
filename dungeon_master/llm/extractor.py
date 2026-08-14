@@ -42,9 +42,23 @@ def parse_delta(raw: str) -> StateDelta:
         raise ValueError(str(exc)) from exc
 
 
+def _canon(world: World, state: GameState) -> str:
+    """What the narrator is allowed to restate without it counting as invention.
+
+    Without this the extractor cannot tell canon from novelty, and the
+    established-facts ledger fills with echoes of the world bible.
+    """
+    location = world.locations[state.current_location]
+    lines = [*world.history, *location.secrets, location.description]
+    lines += [world.items[i].notes for i in state.inventory if i in world.items]
+    lines += [world.npcs[n].role for n in location.npcs if n in world.npcs]
+    return "\n".join(f"- {line.strip()}" for line in lines if line.strip())
+
+
 def _user_message(world: World, state: GameState, player_input: str, narration: str) -> str:
     stages = {qid: list(q.stages) for qid, q in world.quests.items()}
     return prompts.EXTRACTOR_USER.format(
+        canon=_canon(world, state),
         locations=", ".join(world.locations),
         exits=", ".join(world.locations[state.current_location].exits),
         items=", ".join(world.items),
