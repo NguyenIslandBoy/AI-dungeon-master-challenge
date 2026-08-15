@@ -18,7 +18,10 @@ RULES
 - Use ONLY ids from ALLOWED IDS. Never invent an id, never use a display name.
 - Report only what the narration actually established this turn. If the player
   reached for something and was interrupted, they did not get it.
-- move_to only if the player actually arrived somewhere new this turn.
+- move_to only if the player actually arrived somewhere new this turn. Standing
+  "at the foot of", "at the threshold of", "before" or "looking toward" a place
+  is NOT arriving at it — it is the narrator declining to move them, and the
+  answer is null. Only report a move the narration puts the player *inside*.
 - move_to MUST be one of "reachable from here". If the player set out for
   somewhere further away, report the adjacent place they would pass through
   first, not their intended destination. Travel is one step per turn: a player
