@@ -33,11 +33,34 @@ def test_legal_move_applies_and_records_visit(state, world):
     assert rejected == []
 
 
-def test_non_adjacent_move_is_rejected(state, world):
-    # The lamp room is two hops up the tower; you cannot teleport to it.
+def test_a_distant_move_walks_one_room_instead_of_being_refused(state, world):
+    """The lamp room is two hops up the tower. The intent is legitimate — the
+    player just cannot teleport — so they get as far as the stair.
+
+    Refusing outright was the original behaviour and it stranded the story: the
+    narrator went on describing a tower climb while state sat in the entrance."""
     new, rejected = apply_delta(state, StateDelta(move_to="lamp_room"), world)
+    assert new.current_location == "stair_ascent"
+    assert new.visited == ["lighthouse_landing", "stair_ascent"]
+    assert any("stepped to 'stair_ascent'" in r for r in rejected)
+
+
+def test_a_genuinely_unreachable_move_is_still_refused(state, world, monkeypatch):
+    island = world.locations["lamp_room"].model_copy(deep=True)
+    island.exits = []
+    monkeypatch.setitem(world.locations, "unreachable_isle", island)
+
+    new, rejected = apply_delta(state, StateDelta(move_to="unreachable_isle"), world)
     assert new.current_location == state.current_location
     assert any("not reachable" in r for r in rejected)
+
+
+def test_the_step_is_the_shortest_one(world):
+    # landing -> stair -> lamp room, and landing -> shore -> chapel
+    assert world.step_toward("lighthouse_landing", "lamp_room") == "stair_ascent"
+    assert world.step_toward("lighthouse_landing", "drowned_chapel") == "shore_path"
+    assert world.step_toward("lamp_room", "shore_path") == "stair_ascent"
+    assert world.step_toward("lighthouse_landing", "lighthouse_landing") is None
 
 
 def test_unknown_location_is_rejected(state, world):

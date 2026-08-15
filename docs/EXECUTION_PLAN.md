@@ -13,7 +13,7 @@ where the build can stall.
 
 ## 0. Build status
 
-Phases R through 6 are **implemented**. 77 tests pass with no network access.
+Phases R through 6 are **implemented**. 79 tests pass with no network access.
 
 What remains is gated on Novita reachability, not on code:
 

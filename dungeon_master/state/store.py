@@ -101,10 +101,21 @@ def apply_delta(
         if delta.move_to not in world.locations:
             rejected.append(f"move_to: unknown location '{delta.move_to}'")
         elif not world.is_adjacent(state.current_location, delta.move_to):
-            rejected.append(
-                f"move_to: '{delta.move_to}' is not reachable from "
-                f"'{state.current_location}'"
-            )
+            # Travel is one room per turn, but the intent is legitimate: walk
+            # them the first hop rather than refusing the journey outright.
+            # Telling the extractor to do this itself did not work in practice.
+            step = world.step_toward(state.current_location, delta.move_to)
+            if step is None:
+                rejected.append(
+                    f"move_to: '{delta.move_to}' is not reachable from "
+                    f"'{state.current_location}'"
+                )
+            else:
+                new.current_location = step
+                rejected.append(
+                    f"move_to: '{delta.move_to}' is not adjacent; "
+                    f"stepped to '{step}' instead"
+                )
         else:
             new.current_location = delta.move_to
 

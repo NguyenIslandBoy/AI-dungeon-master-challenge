@@ -50,11 +50,18 @@ def corrections_from(rejected: list[str], state: GameState, world: World) -> lis
                 world.locations[e].name
                 for e in world.locations[state.current_location].exits
             )
+            arrived = "stepped to" in reason
             out.append(
-                f"The player did NOT travel anywhere. They are still in {here}. "
-                "Any journey, arrival, or new room you described did not happen — "
-                "and anything you said about that room is not true of it. From "
-                f"here they can reach only: {exits}."
+                (
+                    f"The player got only as far as {here}, and is standing there "
+                    "now. They did NOT reach the place they set out for, and did "
+                    "not go inside it."
+                    if arrived
+                    else f"The player did NOT travel anywhere. They are still in {here}."
+                )
+                + " Anything you said about arriving somewhere else, or about what"
+                " was inside it, is not true. From here they can reach only:"
+                f" {exits}."
             )
         elif reason.startswith("add_items: unknown item"):
             item = reason.split("'")[1] if "'" in reason else "that object"
@@ -94,7 +101,7 @@ def run_turn(
         # An empty completion is a failure, not a silent turn. Recording it
         # would poison the transcript with a blank DM reply and hand the
         # extractor nothing to work from.
-        log.error("narrator returned no content — see the preceding warning for why")
+        log.error("narrator returned no content - see the preceding warning for why")
         return TurnResult(state, "", [], failed=True)
 
     # Extraction runs on the *complete* narration — extracting from a partial

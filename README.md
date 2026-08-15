@@ -29,7 +29,7 @@ the display names on the website are not API ids. If a default has been retired:
 
 ```bash
 uv run python -m dungeon_master.cli --models   # list what is actually served
-uv run pytest -q                               # 77 tests, no network required
+uv run pytest -q                               # 79 tests, no network required
 ```
 
 ### In-game commands
@@ -395,7 +395,7 @@ dungeon_master/
   context.py   prompt assembly
   game.py      one turn of the lifecycle, no I/O
   cli.py       game loop, the only module that prints
-tests/         77 tests, no network required
+tests/         79 tests, no network required
 docs/          ARCHITECTURE.md, DECISIONS.md, PLAN.md, EXECUTION_PLAN.md
 ```
 

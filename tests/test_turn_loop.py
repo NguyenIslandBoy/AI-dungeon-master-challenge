@@ -29,7 +29,7 @@ def test_a_short_playthrough_keeps_state_exact(world, state):
         # turn 2 — walk out to the shore
         "Rain takes you sideways the moment you clear the door.",
         json.dumps({"move_to": "shore_path", "quest_updates": {"the_dark_night": "asked"}}),
-        # turn 3 — the narrator hallucinates a sword; the state layer refuses it
+        # turn 3 — the narrator hallucinates a sword and a shortcut to the tower
         "You find a greatsword wedged in the rocks, and a hidden stair to the lamp room.",
         json.dumps({"add_items": ["greatsword"], "move_to": "lamp_room"}),
     )
@@ -47,9 +47,11 @@ def test_a_short_playthrough_keeps_state_exact(world, state):
     state, rejected = result.state, result.rejected
     # Prose said sword. State says no sword. State wins.
     assert state.inventory == ["sealed_letter"]
-    assert state.current_location == "shore_path"
     assert any("unknown item 'greatsword'" in r for r in rejected)
-    assert any("not reachable" in r for r in rejected)
+    # No hidden stair exists: from the shore the tower is reached via the landing,
+    # so the player walks back there rather than teleporting up it.
+    assert state.current_location == "lighthouse_landing"
+    assert any("stepped to 'lighthouse_landing'" in r for r in rejected)
 
     assert state.turn_count == 3
     assert state.visited == ["lighthouse_landing", "shore_path"]
@@ -67,18 +69,19 @@ def test_a_rejected_move_corrects_the_narrator_next_turn(world, state):
     )
     result = run_turn(client, world, state, transcript, "I take the stair to the lamp room")
 
-    assert result.state.current_location == "lighthouse_landing"
+    # One room per turn: they reach the stair, not the room at the top of it.
+    assert result.state.current_location == "stair_ascent"
     assert result.state.pending_corrections
     correction = result.state.pending_corrections[0]
-    assert "did NOT travel" in correction
+    assert "got only as far as The Spiral Stair" in correction
+    assert "did not go inside it" in correction
     # Naming the real exits gives the narrator somewhere legitimate to go, rather
     # than only telling it what it got wrong.
-    assert "The Spiral Stair" in correction and "The Shore Path" in correction
-    assert "The Lamp Room" not in correction
+    assert "The Landing" in correction and "The Lamp Room" in correction
 
     system, _ = context.build(result.state, world, transcript, "what now?")
     assert "CORRECTIONS" in system
-    assert "The Landing" in system
+    assert "The Spiral Stair" in system
 
 
 def test_a_hallucinated_item_is_disowned_to_the_narrator(world, state):

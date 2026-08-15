@@ -7,12 +7,31 @@ import os
 import time
 from collections.abc import Iterator
 
-from openai import APIError, APITimeoutError, OpenAI, RateLimitError
+from openai import (
+    APIConnectionError,
+    APIError,
+    APIStatusError,
+    APITimeoutError,
+    OpenAI,
+    RateLimitError,
+)
 
 log = logging.getLogger(__name__)
 
 DEFAULT_BASE_URL = "https://api.novita.ai/openai"
-RETRYABLE = (APITimeoutError, RateLimitError, APIError)
+RETRYABLE = (APITimeoutError, APIConnectionError, RateLimitError, APIError)
+
+
+def _worth_retrying(exc: Exception) -> bool:
+    """A 400 means the request itself is wrong, and it will be just as wrong the
+    second time. Only 429 and 5xx are worth a backoff — retrying "json_object is
+    not supported" merely made startup six seconds slower.
+    """
+    if isinstance(exc, RateLimitError):
+        return True
+    if isinstance(exc, APIStatusError):
+        return exc.status_code >= 500
+    return True  # timeouts and connection errors
 
 
 class LLMError(RuntimeError):
@@ -75,6 +94,9 @@ class LLMClient:
                 return response.choices[0].message.content or ""
             except RETRYABLE as exc:  # noqa: PERF203 - retry is the point
                 last = exc
+                if not _worth_retrying(exc):
+                    log.warning("llm request rejected, not retrying: %s", exc)
+                    break
                 log.warning("llm attempt %s/%s failed: %s", attempt, self.attempts, exc)
                 if attempt < self.attempts:
                     time.sleep(2**attempt)
@@ -104,7 +126,7 @@ class LLMClient:
             log.warning(
                 "NARRATOR_MODEL=%s is a reasoning model: it spent its entire "
                 "token budget on %s reasoning chunks and never emitted prose. "
-                "Set NARRATOR_MODEL in your .env (NOT .env.example — .env is "
+                "Set NARRATOR_MODEL in your .env (NOT .env.example - .env is "
                 "gitignored and a pull will not update it) to an instruct-tuned "
                 "model, e.g. meta-llama/llama-3.3-70b-instruct or "
                 "moonshotai/kimi-k2-instruct. Run --models to see the catalog.",

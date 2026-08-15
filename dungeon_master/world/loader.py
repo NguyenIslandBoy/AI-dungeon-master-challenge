@@ -92,6 +92,28 @@ class World(BaseModel):
     def is_adjacent(self, src: str, dst: str) -> bool:
         return dst in self.locations.get(src, Location(name="", description="")).exits
 
+    def step_toward(self, src: str, dst: str) -> str | None:
+        """The first hop on the shortest path from `src` to `dst`, or None.
+
+        A player who says "go up to the lamp room" has expressed a real intent
+        that the world permits; they simply cannot teleport. Refusing the whole
+        move strands the story, so the code walks them one room instead.
+        """
+        if src not in self.locations or dst not in self.locations or src == dst:
+            return None
+        seen, queue = {src}, [(src, None)]
+        while queue:
+            current, first = queue.pop(0)
+            for nxt in self.locations[current].exits:
+                if nxt in seen:
+                    continue
+                hop = first or nxt
+                if nxt == dst:
+                    return hop
+                seen.add(nxt)
+                queue.append((nxt, hop))
+        return None
+
 
 def _check_references(world: World) -> list[str]:
     """Collect every dangling id. Returning all of them beats first-fail —
