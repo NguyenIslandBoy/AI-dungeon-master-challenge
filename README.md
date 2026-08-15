@@ -79,6 +79,26 @@ The Tide-Wardens are sworn to truth and expert at omission — one line in their
 prompt block. "They will not say what" is that rule surfacing on its own.
 
 ```
+> I look around
+
+The tally marks catch your eye first. They are carved into the wall at
+shoulder height, thousands of them, in a hand that moved without hesitation.
+They run the length of what you can see, but somewhere about a third of the
+way up, the marks stop. There is no gap where a tool slipped — the carving
+resumes on the far side of the absence, in the same hand, the same steady
+rhythm, as though someone simply chose not to count one year.
+
+Beneath your feet, the steps are dry. Not merely less wet — dry, as though
+the stone drinks nothing.
+```
+
+Both of those are `secrets` on the Spiral Stair, and neither is stated. The
+missing year is when the Keeper drowned; the dry steps are the tell that he is
+not carrying rain up them. `secrets` and the NPC `wants` / `knows` / `hides`
+fields are the cheapest thing in the whole world file and do most of the work of
+making the DM feel like it knows more than it is saying.
+
+```
 > /state
 ╭───────────────────────── game state ──────────────────────────╮
 │ Location: The Landing                                         │
@@ -328,6 +348,11 @@ Honest list:
 - The correction loop is reactive, not preventive: a bad turn still reaches the
   player, and only the *next* turn is steered back. A canon validator on the
   narration itself would catch it before it is printed — see next steps.
+- Nothing validates the narrator's *assertions* about the world, only its
+  proposed state changes. It once called the great lamp "dark" — flatly against
+  the world's premise — and then repeated it, because its own prose was in the
+  verbatim buffer. Hard rules 2a and 2b push back on this; they do not
+  guarantee it. This is the single largest remaining gap.
 - Open-weight narrators break the word limit and occasionally slip out of second
   person. Contained, not eliminated — and contained is the design goal.
 - Single player, single save slot, no concurrency. Deliberate.
