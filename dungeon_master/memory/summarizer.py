@@ -31,7 +31,7 @@ def maybe_compress(
         return False
 
     joined = "\n\n".join(f"Player: {t.player}\nDM: {t.dm}" for t in pending)
-    prompt = prompts.SUMMARY_PROMPT.format(
+    prompt = prompts.SUMMARY_PROMPT.render(
         previous=transcript.summary or "(nothing yet)", turns=joined
     )
 

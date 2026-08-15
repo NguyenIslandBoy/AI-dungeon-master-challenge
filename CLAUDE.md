@@ -54,7 +54,8 @@ dungeon_master/
   world/       world.yaml (static canon), loader.py
   state/       models.py (GameState, StateDelta), store.py (apply/save/load)
   memory/      transcript.py (turn buffer), summarizer.py (rolling compression)
-  llm/         client.py, prompts.py, narrator.py, extractor.py
+  llm/         client.py, narrator.py, extractor.py
+  llm/prompts/ one .md per prompt + a loader (__init__.py)
   context.py   prompt assembly — the crown jewel, keep it readable
   cli.py       game loop
 tests/         test_delta.py — deterministic parts only
@@ -110,8 +111,13 @@ In-game: `/state` (dump state — debug + demo), `/save`, `/load`, `/quit`
 
 ## Conventions
 
-- **All prompts live in `llm/prompts.py`.** Never inline a prompt string anywhere
-  else. They're the artefact reviewers will read most closely.
+- **All prompts live in `llm/prompts/`, one markdown file each.** Never inline a
+  prompt string anywhere else. They're the artefact reviewers will read most
+  closely, and they are content rather than code — a wording change should be a
+  clean diff of prose, not of Python string literals.
+- **Placeholders are `${name}`, never `{name}`.** Prompts are rendered with
+  `string.Template`, because `extractor_system.md` is mostly a JSON schema and
+  `str.format` would read every brace in it as a field.
 - **`apply_delta()` is a pure function.** No I/O, no LLM calls. It is the one thing
   that gets real unit tests.
 - Pydantic models everywhere state crosses a boundary. Validate extractor output.

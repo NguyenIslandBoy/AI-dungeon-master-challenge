@@ -29,7 +29,7 @@ the display names on the website are not API ids. If a default has been retired:
 
 ```bash
 uv run python -m dungeon_master.cli --models   # list what is actually served
-uv run pytest -q                               # 68 tests, no network required
+uv run pytest -q                               # 77 tests, no network required
 ```
 
 ### In-game commands
@@ -390,13 +390,19 @@ dungeon_master/
   world/       world.yaml (static canon) + loader with reference validation
   state/       models.py (GameState, StateDelta), store.py (pure apply_delta)
   memory/      transcript.py (turn buffer), summarizer.py (rolling digest)
-  llm/         client.py, prompts.py, narrator.py, extractor.py
+  llm/         client.py, narrator.py, extractor.py
+  llm/prompts/ one markdown file per prompt, plus a loader
   context.py   prompt assembly
   game.py      one turn of the lifecycle, no I/O
   cli.py       game loop, the only module that prints
-tests/         68 tests, no network required
+tests/         77 tests, no network required
 docs/          ARCHITECTURE.md, DECISIONS.md, PLAN.md, EXECUTION_PLAN.md
 ```
 
-All prompts live in `llm/prompts.py` — nothing is inlined elsewhere. They are the
-artefact worth reading most closely.
+All prompts live in `llm/prompts/` as markdown, one file each — nothing is
+inlined in Python. They are the artefact worth reading most closely, and keeping
+them as content means a wording change diffs as prose. Placeholders use
+`${name}` via `string.Template`: `extractor_system.md` is largely a JSON schema,
+and `str.format` would try to read every brace in it as a field. The loader
+reads every file at import, so a missing file or an unfilled placeholder fails
+at startup rather than mid-game.

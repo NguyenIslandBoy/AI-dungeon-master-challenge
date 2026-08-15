@@ -40,7 +40,7 @@ def render_scene(world: World, state: GameState) -> str:
     held = set(state.inventory)
 
     npc_notes = "\n".join(
-        prompts.NPC_NOTE.format(
+        prompts.NPC_NOTE.render(
             name=npc.name,
             role=npc.role,
             faction=f", {world.factions[npc.faction].name}" if npc.faction else "",
@@ -58,7 +58,7 @@ def render_scene(world: World, state: GameState) -> str:
     carried = {iid: world.items[iid] for iid in state.inventory if iid in world.items}
 
     detail = [
-        prompts.ITEM_DETAIL.format(
+        prompts.ITEM_DETAIL.render(
             name=item.name, where=" (carried)" if iid in held else "", description=item.description.strip()
         )
         for iid, item in {**in_play, **carried}.items()
@@ -69,7 +69,7 @@ def render_scene(world: World, state: GameState) -> str:
         if item.notes.strip()
     ]
 
-    return prompts.SCENE_BLOCK.format(
+    return prompts.SCENE_BLOCK.render(
         location_name=scene.location.name,
         description=scene.location.description.strip(),
         exits=_join([f"{name} [{lid}]" for lid, name in scene.exits.items()]),
@@ -96,7 +96,7 @@ def render_state(world: World, state: GameState) -> str:
         for qid, stage in state.quest_flags.items()
         if qid in world.quests
     ]
-    return prompts.STATE_BLOCK.format(
+    return prompts.STATE_BLOCK.render(
         location=world.locations[state.current_location].name,
         inventory=_join([world.items[i].name for i in state.inventory if i in world.items]),
         visited=_join([world.locations[v].name for v in state.visited if v in world.locations]),
@@ -111,10 +111,10 @@ def render_state(world: World, state: GameState) -> str:
 def build_system(world: World, state: GameState) -> str:
     history = "\n".join(f"- {h.strip()}" for h in world.history)
     sections = [
-        prompts.DM_SYSTEM.format(
+        prompts.DM_SYSTEM.render(
             world_name=world.meta.name,
             tone=world.meta.tone.strip(),
-            world_section=prompts.WORLD_SECTION.format(history=history),
+            world_section=prompts.WORLD_SECTION.render(history=history),
         ),
         render_scene(world, state),
         render_state(world, state),
@@ -123,7 +123,7 @@ def build_system(world: World, state: GameState) -> str:
         # The validator's rejections are not just a log line — they are the only
         # signal that can pull the narration back in line with the world.
         sections.append(
-            prompts.CORRECTION_BLOCK.format(
+            prompts.CORRECTION_BLOCK.render(
                 corrections="\n".join(f"- {c}" for c in state.pending_corrections)
             )
         )
@@ -150,7 +150,7 @@ def build(
     summary = transcript.summary
 
     while True:
-        story = prompts.STORY_SO_FAR.format(summary=summary) if summary else ""
+        story = prompts.STORY_SO_FAR.render(summary=summary) if summary else ""
         full_system = f"{system}\n\n{story}" if story else system
         messages = [
             *transcript.as_messages(keep),

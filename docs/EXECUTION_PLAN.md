@@ -13,7 +13,7 @@ where the build can stall.
 
 ## 0. Build status
 
-Phases R through 6 are **implemented**. 68 tests pass with no network access.
+Phases R through 6 are **implemented**. 77 tests pass with no network access.
 
 What remains is gated on Novita reachability, not on code:
 
@@ -234,10 +234,10 @@ ends, remove-not-held, empty-delta idempotence.
 ### Phase 3 — Context builder + narrator (60 min) — protected
 
 ```
-memory/transcript.py    llm/prompts.py    context.py    llm/narrator.py
+memory/transcript.py    llm/prompts/    context.py    llm/narrator.py
 ```
 
-All prompt strings live in `llm/prompts.py`. No exceptions — these are the
+All prompts live in `llm/prompts/` as markdown. No exceptions — these are the
 artefact reviewers read most closely.
 
 ```python

@@ -95,7 +95,7 @@ This is 30 minutes that buys most of the "the author enjoyed building it" points
 Spend the time here. This is what gets discussed in the interview.
 
 - [x] `memory/transcript.py` — turn buffer, `last_n(8)`
-- [x] `llm/prompts.py` — `DM_SYSTEM` (with the 6 hard rules from ARCHITECTURE §5),
+- [x] `llm/prompts/` — `dm_system.md` (with the 6 hard rules from ARCHITECTURE §5),
       `SCENE_BLOCK`, `STATE_BLOCK`, `SUMMARY_PROMPT`, `EXTRACTOR_SYSTEM`
 - [x] `context.py` — `build(state, world, memory, player_input) -> (system, messages)`
   - [x] Injects **only** current location + exits + entities present

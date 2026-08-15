@@ -57,7 +57,7 @@ def _canon(world: World, state: GameState) -> str:
 
 def _user_message(world: World, state: GameState, player_input: str, narration: str) -> str:
     stages = {qid: list(q.stages) for qid, q in world.quests.items()}
-    return prompts.EXTRACTOR_USER.format(
+    return prompts.EXTRACTOR_USER.render(
         canon=_canon(world, state),
         locations=", ".join(world.locations),
         exits=", ".join(world.locations[state.current_location].exits),
@@ -92,7 +92,7 @@ def extract(
     for attempt in (1, 2):
         try:
             raw = client.complete(
-                prompts.EXTRACTOR_SYSTEM,
+                prompts.EXTRACTOR_SYSTEM.text,
                 messages,
                 model=model,
                 # Headroom for reasoning models, which spend budget thinking
@@ -116,7 +116,7 @@ def extract(
                 messages = [
                     {"role": "user", "content": user},
                     {"role": "assistant", "content": raw},
-                    {"role": "user", "content": prompts.RETRY_SUFFIX.format(error=exc)},
+                    {"role": "user", "content": prompts.RETRY_SUFFIX.render(error=exc)},
                 ]
         except LLMError as exc:
             log.error("extractor transport failure: %s", exc)
