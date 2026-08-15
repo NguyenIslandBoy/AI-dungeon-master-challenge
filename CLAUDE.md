@@ -82,8 +82,8 @@ client = OpenAI(
 
 | Role | Default | Why |
 |---|---|---|
-| Narrator | `zai-org/glm-4.7-flash` | Cheap, long context, solid prose |
-| Extractor | `zai-org/glm-4.7-flash` | Same model by default; separate setting so it can be swapped |
+| Narrator | `moonshotai/kimi-k2-instruct` | Best prose of the instruct models tried |
+| Extractor | `meta-llama/llama-3.3-70b-instruct` | Reliable JSON; cheaper, and does not need to write well |
 
 **Never hardcode a model ID.** Novita's catalog changes often and display names on
 the website are not API ids. Confirm ids at runtime:

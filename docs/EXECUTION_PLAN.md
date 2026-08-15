@@ -19,7 +19,7 @@ What remains is gated on Novita reachability, not on code:
 
 | Gate | State |
 |---|---|
-| G0 — model ids resolved against the live catalog | **Cleared.** Base URL corrected to `https://api.novita.ai/openai`; both roles default to `zai-org/glm-4.7-flash` |
+| G0 — model ids resolved against the live catalog | **Cleared.** Base URL corrected to `https://api.novita.ai/openai`; narrator `moonshotai/kimi-k2-instruct`, extractor `meta-llama/llama-3.3-70b-instruct` |
 | G1 — narration reflects state | **Cleared** on `meta-llama/llama-3.3-70b-instruct`. Two bugs found by doing it: reasoning-model starvation, and item canon never being injected |
 | G2 — extractor JSON ≥ 8/10 | **Cleared** on `meta-llama/llama-3.3-70b-instruct`. Reasoning models starve here too and are not viable for either role |
 | README sample transcript | **Done** — real captured session, including both adversarial probes |
@@ -111,7 +111,8 @@ served — the stale value was not a model id but the **base URL**: it is
 That would have 404'd every reviewer on the first turn, which is exactly the
 class of failure this gate exists to catch.
 
-Shipped defaults are now `zai-org/glm-4.7-flash` for both roles. The first
+Shipped defaults are now `moonshotai/kimi-k2-instruct` for the narrator and
+`meta-llama/llama-3.3-70b-instruct` for the extractor. The first
 choice, `deepseek/deepseek-v4-flash-0731`, was served and answered — but is a
 reasoning model, and spent its entire token budget in `reasoning_content`
 without emitting a word of prose. Gate G1 caught that on the first real turn,

@@ -7,7 +7,7 @@ from collections.abc import Iterator
 
 from .client import LLMClient
 
-DEFAULT_MODEL = "zai-org/glm-4.7-flash"
+DEFAULT_MODEL = "moonshotai/kimi-k2-instruct"
 
 
 def narrator_model() -> str:

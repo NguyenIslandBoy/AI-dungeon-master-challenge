@@ -44,8 +44,10 @@ uv run pytest -q                               # 81 tests, no network required
 
 ## A sample session
 
-Real transcript, trimmed for length. Narrator `inclusionai/ling-3.0-flash`,
-extractor `meta-llama/llama-3.3-70b-instruct`.
+Real transcripts, trimmed for length, drawn from several sessions during
+development. Shipped defaults are narrator `moonshotai/kimi-k2-instruct`, extractor
+`meta-llama/llama-3.3-70b-instruct`; the narrator changed twice along the way, for
+reasons in [`docs/DECISIONS.md`](docs/DECISIONS.md) 11.
 
 ```
 > I pick up the letter and break the seal
@@ -327,8 +329,8 @@ with more time — as a *supplement* to extraction, not a replacement.
 
 ### Two roles, one model — but still two settings
 
-`NARRATOR_MODEL` and `EXTRACTOR_MODEL` both default to
-`zai-org/glm-4.7-flash`. They are separate settings anyway, and that is
+`NARRATOR_MODEL` defaults to `moonshotai/kimi-k2-instruct` and `EXTRACTOR_MODEL`
+to `meta-llama/llama-3.3-70b-instruct` — they ended up on different models. They are separate settings anyway, and that is
 the point: the roles have genuinely different requirements — one wants
 temperature and prose quality, the other wants determinism and valid JSON — so
 either can move independently the moment the other stops being a good fit. Today

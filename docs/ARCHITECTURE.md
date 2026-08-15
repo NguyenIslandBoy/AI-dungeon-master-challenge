@@ -270,8 +270,8 @@ calling are supported.</cite>
 
 | Role | Default | Rationale |
 |---|---|---|
-| **Narrator** | `zai-org/glm-4.7-flash` | Verified served; cheap, long context, solid prose |
-| **Extractor** | `zai-org/glm-4.7-flash` | Same model by default. Kept a separate setting so the extractor can move to a cheaper or more JSON-reliable model with no code change |
+| **Narrator** | `moonshotai/kimi-k2-instruct` | Best prose of the instruct models tried. Two earlier picks were reasoning models and starved (see DECISIONS 11) |
+| **Extractor** | `meta-llama/llama-3.3-70b-instruct` | Cheaper, reliable JSON, and never has to write a sentence anyone reads |
 
 Alternatives worth a swap if narration feels flat: `moonshotai/kimi-k2.5` (strong
 creative writing, pricier) or `zai-org/glm-4.7`. For the extractor, `qwen3-coder-30b-a3b`
