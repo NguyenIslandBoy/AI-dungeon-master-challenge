@@ -29,7 +29,7 @@ the display names on the website are not API ids. If a default has been retired:
 
 ```bash
 uv run python -m dungeon_master.cli --models   # list what is actually served
-uv run pytest -q                               # 81 tests, no network required
+uv run pytest -q                               # 84 tests, no network required
 ```
 
 ### In-game commands
@@ -44,145 +44,24 @@ uv run pytest -q                               # 81 tests, no network required
 
 ## A sample session
 
-Real transcripts, trimmed for length, drawn from several sessions during
-development. Shipped defaults are narrator `moonshotai/kimi-k2-instruct`, extractor
-`meta-llama/llama-3.3-70b-instruct`; the narrator changed twice along the way, for
-reasons in [`docs/DECISIONS.md`](docs/DECISIONS.md) 11.
+<!-- ⚠️ STALE — every transcript here was captured in a previous world
+     ("The Keeper's Reach"). world.yaml has since been rewritten as
+     "The Long Ebb" and none of these lines can be produced any more.
+     Re-capture before submitting; four turns is enough:
 
-```
-> I pick up the letter and break the seal
+       I read the papers in my coat
+       I ask the net-mender what she is working on
+       /state
+       I walk out onto the flats
 
-You peel the wax. It crumbles like old skin. The paper inside is soft as
-cloth, the ink barely holding its shape.
+     That covers item canon (the papers), an NPC whose `hides` is "nothing
+     at all", the exact ledger, and a location whose secrets do the work.
+     Then the two probes: a weapon that does not exist, and a move two rooms
+     away. Paste the results back in and restore the commentary. -->
 
-    Twice is refusal. A third asking will not be an asking. —V.
-
-Three gulls and a wave stare up at you from the ruined wax. The words sit on
-the page with a strange finality, as if whoever wrote them has said this
-before — twice already — and knows the count matters.
-```
-
-That text is not improvised. It is the `notes` field of `sealed_letter` in
-`world.yaml`, injected because the item is in the scene. Before item canon was
-wired into the context builder, this same model invented a midnight meeting at a
-chapel instead — an early bug, and a good illustration of why the bible has to
-reach the prompt rather than merely exist.
-
-```
-> I pocket the key too. And I'll say this now — I don't trust wizards. Never have.
-
-You say you don't trust wizards. The word hangs in the salt air and nothing
-answers it. The lighthouse has no wizard — only a Keeper, a title that means
-one thing here and something else to the Tide-Wardens. They will not say what.
-You have not earned their trust yet, and they will not offer it.
-```
-
-The Tide-Wardens are sworn to truth and expert at omission — one line in their
-prompt block. "They will not say what" is that rule surfacing on its own.
-
-```
-> I look around
-
-The tally marks catch your eye first. They are carved into the wall at
-shoulder height, thousands of them, in a hand that moved without hesitation.
-They run the length of what you can see, but somewhere about a third of the
-way up, the marks stop. There is no gap where a tool slipped — the carving
-resumes on the far side of the absence, in the same hand, the same steady
-rhythm, as though someone simply chose not to count one year.
-
-Beneath your feet, the steps are dry. Not merely less wet — dry, as though
-the stone drinks nothing.
-```
-
-Both of those are `secrets` on the Spiral Stair, and neither is stated. The
-missing year is when the Keeper drowned; the dry steps are the tell that he is
-not carrying rain up them. `secrets` and the NPC `wants` / `knows` / `hides`
-fields are the cheapest thing in the whole world file and do most of the work of
-making the DM feel like it knows more than it is saying.
-
-```
-> /state
-╭───────────────────────── game state ──────────────────────────╮
-│ Location: The Landing                                         │
-│ Inventory: a sealed letter, a rusty key                       │
-│ Places visited: The Landing                                   │
-│ Quests: The Third Asking: The player knows House Valen wants  │
-│         the light dark for one night.                         │
-│         What the Keeper Forgot: No reason to suspect anything  │
-│         about the Keeper.                                     │
-│ Player traits: distrusts wizards                              │
-│ Turn: 2                                                       │
-╰───────────────────────────────────────────────────────────────╯
-```
-
-Two turns of prose, and the ledger is exact: both items held, the quest advanced
-from `unaware` to `asked`, and `distrusts wizards` recorded as a durable trait.
-That trait is now injected on every subsequent turn — it does not depend on the
-summariser having preserved it, or on the model remembering a sentence from
-twenty turns ago.
-
-### Pushing on it deliberately
-
-Two adversarial inputs, and what each one proved.
-
-**A weapon that does not exist.** Asked to draw a greatsword, the narrator
-obliged — *"The blade clears the rain with a sound like a knife through wet
-cloth"* — a flat violation of hard rule 2. The extractor, however, proposed no
-item, so nothing entered inventory. Prose lied; state did not. That is the design
-working as intended rather than the model behaving.
-
-**A move that is not legal.** The lamp room is two hops up the tower, not
-adjacent to the landing. Asked to go straight there, the delta was refused:
-
-```
-INFO dungeon_master.game: rejected - move_to: 'lamp_room' is not reachable
-                          from 'lighthouse_landing'
-```
-
-But the narration described the climb and the arrival anyway — warm oil, a cup of
-tea gone cold on the ledge. State stayed correct while the *story* walked two
-rooms away from it, and nothing would have pulled it back.
-
-That gap is why rejections are no longer only logged. They are fed to the
-narrator on the following turn as a `CORRECTIONS` block:
-
-```
-CORRECTIONS — your last reply described something that did not happen...
-- The player did NOT travel anywhere. They are still in The Landing. Any
-  journey, arrival, or new room you described did not happen.
-- There is no such thing as 'greatsword' in this world. The player does not
-  have one and never did. Stop referring to it.
-```
-
-`apply_delta` was already computing exactly this information and throwing it
-away. Feeding it back makes the validator a control signal rather than a
-bystander, and closes the loop between "the code decides" and "the model
-narrates." Corrections are owed for exactly one turn, and only rejections the
-player would have *seen* qualify — bookkeeping ones stay in the log.
-
-Two further passes were needed before this held. The narrator had to be told
-that it has *not been shown* what other rooms contain, so describing one means
-inventing it — and that stopping at the foot of the stair is a correct place to
-end a reply. And path-finding had to move out of the prompt and into
-`World.step_toward`: telling the extractor to report the adjacent step was tried
-first and simply did not take, whereas shortest path is a topology question with
-an exact answer. The same request now reads:
-
-```
-> I take the hidden stair from here up to the lamp room
-
-There is no hidden stair. The only way up is the spiral stair, winding against
-the inner wall with its iron rail gone green and soft from salt. You set your
-hand on it and climb.
-[...]
-You do not reach the lamp room. Not yet. The stair coils on into shadow and
-weather, and here at the turn you still stand on salt-wet stone, the Landing
-fallen away below, the top still hidden by the curve of the wall.
-```
-
-A false premise refused, one room travelled, and the arrival explicitly
-withheld. `/state` reads `The Spiral Stair`, which is where the prose leaves the
-player standing.
+_Pending re-capture against the current world — see the replay script in the
+comment above, and the demo script in
+[`docs/EXECUTION_PLAN.md`](docs/EXECUTION_PLAN.md) §8._
 
 ---
 
@@ -421,7 +300,7 @@ dungeon_master/
   context.py   prompt assembly
   game.py      one turn of the lifecycle, no I/O
   cli.py       game loop, the only module that prints
-tests/         81 tests, no network required
+tests/         84 tests, no network required
 docs/          ARCHITECTURE.md, DECISIONS.md, PLAN.md, EXECUTION_PLAN.md
 ```
 

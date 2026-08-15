@@ -10,49 +10,47 @@ from dungeon_master.state.store import apply_delta
 
 def test_scene_injects_only_the_current_location(world, state):
     system, _ = context.build(state, world, Transcript(), "look around")
-    assert "The Landing" in system
-    assert "Characters present: (none)" in system
+    assert "The Hall" in system
+    assert "Characters present: The Ghost" in system
     # Absent NPCs must not be name-dropped, and their secrets must not leak.
-    assert "Corvin Valen" not in system
-    assert "never hungry" not in system  # a `hides` entry belonging to the Keeper
-    assert "The Lamp Room" not in system  # a location two hops away
+    assert "The Warden" not in system
+    assert "never once been lit" not in system  # a `hides` belonging to the Warden
+    assert "The Tower" not in system  # a location two hops away
 
 
 def test_present_npcs_bring_their_dm_only_notes(world, state):
-    moved, _ = apply_delta(state, StateDelta(move_to="shore_path"), world)
-    system, _ = context.build(moved, world, Transcript(), "look")
-    assert "The Wrecker" in system
+    system, _ = context.build(state, world, Transcript(), "look")
+    assert "The Ghost" in system
     assert "will deflect:" in system
-    assert "looking for one specific body" in system  # a `hides` entry
+    assert "moved the table itself" in system  # a `hides` entry
 
 
 def test_inventory_and_traits_reach_the_prompt(world, state):
-    delta = StateDelta(add_items=["rusty_key"], new_traits=["distrusts wizards"])
+    delta = StateDelta(add_items=["lamp"], new_traits=["distrusts wizards"])
     new, _ = apply_delta(state, delta, world)
     system, _ = context.build(new, world, Transcript(), "go on")
-    assert "a rusty key" in system
+    assert "a lamp" in system
     assert "distrusts wizards" in system
 
 
 def test_taken_items_stop_being_listed_as_lying_around(world, state):
     system, _ = context.build(state, world, Transcript(), "look")
-    assert "Items here (not yet taken): a rusty key" in system
+    assert "Items here (not yet taken): a lamp" in system
 
-    taken, _ = apply_delta(state, StateDelta(add_items=["rusty_key"]), world)
+    taken, _ = apply_delta(state, StateDelta(add_items=["lamp"]), world)
     system, _ = context.build(taken, world, Transcript(), "look")
-    assert "a rusty key" not in system.split("Items here (not yet taken):")[1].split("\n")[0]
+    assert "a lamp" not in system.split("Items here (not yet taken):")[1].split("\n")[0]
 
 
 def test_the_narrator_is_never_shown_an_internal_id(world, state):
     """Observed live: the narrator ended its reply with
-    `Exits: The Spiral Stair [stair_ascent], ...` — copying the scene block's
+    `Exits: The Stair [stair], ...` — copying the scene block's
     scaffolding, ids and all, straight to the player. It never needed ids: it
     does not propose moves, the extractor does."""
     system, _ = context.build(state, world, Transcript(), "look")
     for location_id in world.locations:
         assert f"[{location_id}]" not in system
-    assert "Exits: The Landing, The Shore Path" not in system  # not this location
-    assert "Exits: The Shore Path, The Spiral Stair" in system  # names, sorted
+    assert "Exits: The Stair, The Yard" in system  # names, sorted, no ids
 
 
 def test_the_extractor_still_gets_ids(world, state):
@@ -65,47 +63,47 @@ def test_the_extractor_still_gets_ids(world, state):
     client = StubClient("{}")
     extract(client, world, state, "I go up", "You climb.")
     user = client.calls[0]["messages"][0]["content"]
-    assert "stair_ascent" in user and "shore_path" in user
+    assert "stair" in user and "yard" in user
 
 
 def test_item_canon_reaches_the_prompt(world, state):
     """Without this the narrator invents what a letter says — observed live."""
     system, _ = context.build(state, world, Transcript(), "I read the letter")
-    assert "The wax bears three gulls over a wave" in system  # description
-    assert "Twice is refusal" in system  # notes — the actual contents
+    assert "Folded twice, sealed with grey wax" in system  # description
+    assert "Do not go up" in system  # notes — the actual contents
 
 
 def test_carried_items_keep_their_canon_after_pickup(world, state):
     """A letter the player pocketed must still say the same thing later, even
     though it has left the scene's item list."""
-    taken, _ = apply_delta(state, StateDelta(add_items=["sealed_letter"]), world)
-    moved, _ = apply_delta(taken, StateDelta(move_to="shore_path"), world)
+    taken, _ = apply_delta(state, StateDelta(add_items=["letter"]), world)
+    moved, _ = apply_delta(taken, StateDelta(move_to="yard"), world)
 
     system, _ = context.build(moved, world, Transcript(), "I reread the letter")
     assert "(carried)" in system
-    assert "Twice is refusal" in system
+    assert "Do not go up" in system
 
 
 def test_item_notes_stay_in_the_dm_only_section(world, state):
     system, _ = context.build(state, world, Transcript(), "look")
     # The phrase also appears in hard rule 6, so take the last segment.
     dm_only = system.split("DM-ONLY NOTES")[-1]
-    # The key's purpose is a DM lever, not something to announce.
-    assert "Opens the vestry cabinet" in dm_only
+    # The lamp's one-night limit is a DM lever, not something to announce.
+    assert "burns for exactly one night" in dm_only
 
 
 def test_absent_items_bring_no_canon(world, state):
     system, _ = context.build(state, world, Transcript(), "look")
-    assert "pivot of the whole Reach" not in system  # the ledger, three rooms away
+    assert "never once been lit" not in system  # the beacon, two rooms away
 
 
 def test_relationship_renders_with_sign_and_note(world, state):
     delta = StateDelta(
-        relationship_changes=[RelChange(npc_id="keeper", delta=15, note="listened to him")]
+        relationship_changes=[RelChange(npc_id="ghost", delta=15, note="listened to him")]
     )
     new, _ = apply_delta(state, delta, world)
     system, _ = context.build(new, world, Transcript(), "go on")
-    assert "The Keeper: +25" in system  # 10 default + 15
+    assert "The Ghost: +25" in system  # 10 default + 15
     assert "listened to him" in system
 
 
@@ -136,7 +134,7 @@ def test_player_input_is_always_last(world, state):
 
 
 def test_budget_sheds_history_but_never_scene_or_state(world, state):
-    held, _ = apply_delta(state, StateDelta(add_items=["rusty_key"]), world)
+    held, _ = apply_delta(state, StateDelta(add_items=["lamp"]), world)
     transcript = Transcript(summary="x" * 4000)
     for i in range(30):
         transcript.append(f"player says something long {i} " * 40, "dm replies at length " * 60)
@@ -149,7 +147,7 @@ def test_budget_sheds_history_but_never_scene_or_state(world, state):
     # The correctness guarantee survives regardless.
     assert "CURRENT SCENE" in system
     assert "GAME STATE" in system
-    assert "a rusty key" in system
+    assert "a lamp" in system
 
 
 def test_build_is_pure_with_respect_to_state(world, state):

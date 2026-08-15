@@ -5,19 +5,8 @@ from __future__ import annotations
 
 import pytest
 
-from dungeon_master.state.models import GameState, RelChange, StateDelta
-from dungeon_master.state.store import apply_delta, new_game
-from dungeon_master.world.loader import load_world
-
-
-@pytest.fixture(scope="module")
-def world():
-    return load_world()
-
-
-@pytest.fixture
-def state(world) -> GameState:
-    return new_game(world)
+from dungeon_master.state.models import RelChange, StateDelta
+from dungeon_master.state.store import apply_delta
 
 
 def test_empty_delta_is_idempotent(state, world):
@@ -27,40 +16,38 @@ def test_empty_delta_is_idempotent(state, world):
 
 
 def test_legal_move_applies_and_records_visit(state, world):
-    new, rejected = apply_delta(state, StateDelta(move_to="shore_path"), world)
-    assert new.current_location == "shore_path"
-    assert "shore_path" in new.visited
+    new, rejected = apply_delta(state, StateDelta(move_to="yard"), world)
+    assert new.current_location == "yard"
+    assert "yard" in new.visited
     assert rejected == []
 
 
 def test_a_distant_move_walks_one_room_instead_of_being_refused(state, world):
-    """The lamp room is two hops up the tower. The intent is legitimate — the
-    player just cannot teleport — so they get as far as the stair.
+    """The tower is two hops up. The intent is legitimate — the player simply
+    cannot teleport — so they get as far as the stair.
 
     Refusing outright was the original behaviour and it stranded the story: the
     narrator went on describing a tower climb while state sat in the entrance."""
-    new, rejected = apply_delta(state, StateDelta(move_to="lamp_room"), world)
-    assert new.current_location == "stair_ascent"
-    assert new.visited == ["lighthouse_landing", "stair_ascent"]
-    assert any("stepped to 'stair_ascent'" in r for r in rejected)
+    new, rejected = apply_delta(state, StateDelta(move_to="tower"), world)
+    assert new.current_location == "stair"
+    assert new.visited == ["hall", "stair"]
+    assert any("stepped to 'stair'" in r for r in rejected)
 
 
-def test_a_genuinely_unreachable_move_is_still_refused(state, world, monkeypatch):
-    island = world.locations["lamp_room"].model_copy(deep=True)
-    island.exits = []
-    monkeypatch.setitem(world.locations, "unreachable_isle", island)
-
-    new, rejected = apply_delta(state, StateDelta(move_to="unreachable_isle"), world)
+def test_a_genuinely_unreachable_move_is_still_refused(state, world):
+    """The cellar exists and nothing leads to it. Stepping toward it is not a
+    smaller version of going there — there is no first hop to take."""
+    new, rejected = apply_delta(state, StateDelta(move_to="cellar"), world)
     assert new.current_location == state.current_location
     assert any("not reachable" in r for r in rejected)
 
 
 def test_the_step_is_the_shortest_one(world):
-    # landing -> stair -> lamp room, and landing -> shore -> chapel
-    assert world.step_toward("lighthouse_landing", "lamp_room") == "stair_ascent"
-    assert world.step_toward("lighthouse_landing", "drowned_chapel") == "shore_path"
-    assert world.step_toward("lamp_room", "shore_path") == "stair_ascent"
-    assert world.step_toward("lighthouse_landing", "lighthouse_landing") is None
+    assert world.step_toward("hall", "tower") == "stair"  # hall -> stair -> tower
+    assert world.step_toward("tower", "yard") == "stair"  # back down and across
+    assert world.step_toward("hall", "yard") == "yard"  # already adjacent
+    assert world.step_toward("hall", "cellar") is None  # nothing leads there
+    assert world.step_toward("hall", "hall") is None
 
 
 def test_unknown_location_is_rejected(state, world):
@@ -77,41 +64,41 @@ def test_hallucinated_item_never_enters_inventory(state, world):
 
 
 def test_known_item_is_added_once(state, world):
-    once, _ = apply_delta(state, StateDelta(add_items=["rusty_key"]), world)
-    twice, rejected = apply_delta(once, StateDelta(add_items=["rusty_key"]), world)
-    assert twice.inventory == ["rusty_key"]
+    once, _ = apply_delta(state, StateDelta(add_items=["lamp"]), world)
+    twice, rejected = apply_delta(once, StateDelta(add_items=["lamp"]), world)
+    assert twice.inventory == ["lamp"]
     assert any("already held" in r for r in rejected)
 
 
 def test_out_of_scene_item_is_allowed_but_logged(state, world):
     """Decision 3: bible membership is the gate, scene presence is a warning —
     otherwise NPCs could never hand the player anything."""
-    new, rejected = apply_delta(state, StateDelta(add_items=["tide_charm"]), world)
-    assert "tide_charm" in new.inventory
+    new, rejected = apply_delta(state, StateDelta(add_items=["journal"]), world)
+    assert "journal" in new.inventory
     assert any("was not in scene" in r for r in rejected)
 
 
 def test_removing_an_unheld_item_is_rejected(state, world):
-    new, rejected = apply_delta(state, StateDelta(remove_items=["rusty_key"]), world)
+    new, rejected = apply_delta(state, StateDelta(remove_items=["lamp"]), world)
     assert new.inventory == []
     assert any("not held" in r for r in rejected)
 
 
 def test_disposition_clamps_at_both_ends(state, world):
-    up = StateDelta(relationship_changes=[RelChange(npc_id="keeper", delta=10_000)])
+    up = StateDelta(relationship_changes=[RelChange(npc_id="ghost", delta=10_000)])
     high, _ = apply_delta(state, up, world)
-    assert high.relationships["keeper"].disposition == 100
+    assert high.relationships["ghost"].disposition == 100
 
-    down = StateDelta(relationship_changes=[RelChange(npc_id="keeper", delta=-10_000)])
+    down = StateDelta(relationship_changes=[RelChange(npc_id="ghost", delta=-10_000)])
     low, _ = apply_delta(high, down, world)
-    assert low.relationships["keeper"].disposition == -100
+    assert low.relationships["ghost"].disposition == -100
 
 
 def test_relationship_seeds_from_world_default(state, world):
-    delta = StateDelta(relationship_changes=[RelChange(npc_id="ilva", delta=5)])
+    delta = StateDelta(relationship_changes=[RelChange(npc_id="warden", delta=5)])
     new, _ = apply_delta(state, delta, world)
-    # Ilva starts at 20 in the bible, so one +5 lands at 25, not 5.
-    assert new.relationships["ilva"].disposition == 25
+    # The warden starts at 20 in the bible, so one +5 lands at 25, not 5.
+    assert new.relationships["warden"].disposition == 25
 
 
 def test_unknown_npc_relationship_is_rejected(state, world):
@@ -122,16 +109,16 @@ def test_unknown_npc_relationship_is_rejected(state, world):
 
 
 def test_unknown_quest_stage_is_rejected(state, world):
-    delta = StateDelta(quest_updates={"the_dark_night": "victory_parade"})
+    delta = StateDelta(quest_updates={"q_light": "victory_parade"})
     new, rejected = apply_delta(state, delta, world)
-    assert new.quest_flags["the_dark_night"] == "unaware"
+    assert new.quest_flags["q_light"] == "unaware"
     assert any("unknown stage" in r for r in rejected)
 
 
 def test_valid_quest_stage_applies(state, world):
-    delta = StateDelta(quest_updates={"the_dark_night": "asked"})
+    delta = StateDelta(quest_updates={"q_light": "seen"})
     new, rejected = apply_delta(state, delta, world)
-    assert new.quest_flags["the_dark_night"] == "asked"
+    assert new.quest_flags["q_light"] == "seen"
     assert rejected == []
 
 
@@ -147,20 +134,20 @@ def test_rephrased_facts_are_recognised_as_duplicates(state, world):
     """These three came out of one real 2-turn session. The first and third are
     the same claim, and the ledger is injected in full every turn."""
     observed = [
-        "the light has burned every night for eleven years without going dark",
-        "the lighthouse has not had a lit stove in 11 years",
-        "the light above has burned steadily for 11 years",
+        "the beacon has turned every night for eleven years without being lit",
+        "the hall has not had a fire in 11 years",
+        "the beacon above has turned steadily for 11 years",
     ]
     new, _ = apply_delta(state, StateDelta(new_facts=observed), world)
     assert len(new.established_facts) == 2
-    assert "the light above has burned steadily for 11 years" not in new.established_facts
+    assert "the beacon above has turned steadily for 11 years" not in new.established_facts
 
 
 def test_distinct_facts_are_both_kept(state, world):
     delta = StateDelta(
         new_facts=[
-            "the vestry cabinet has been forced open",
-            "Maren agreed to meet the player at low tide",
+            "the cellar door has been forced open",
+            "the warden agreed to meet the player at dusk",
         ]
     )
     new, _ = apply_delta(state, delta, world)
@@ -182,5 +169,5 @@ def test_facts_are_capped(state, world):
 
 def test_delta_does_not_mutate_the_input_state(state, world):
     before = state.model_copy(deep=True)
-    apply_delta(state, StateDelta(move_to="shore_path", add_items=["rusty_key"]), world)
+    apply_delta(state, StateDelta(move_to="yard", add_items=["lamp"]), world)
     assert state == before

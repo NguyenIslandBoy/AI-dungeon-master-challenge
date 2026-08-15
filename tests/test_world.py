@@ -62,6 +62,46 @@ def test_shipped_world_loads_and_validates():
     assert world.locations and world.npcs and world.items and world.quests
 
 
+def test_shipped_world_stays_within_budget():
+    """CLAUDE.md caps the world at roughly 6 locations / 6 NPCs / 8 items /
+    2 factions / 2 quests. Depth beats breadth, and the context builder only
+    stays small if the world does."""
+    world = load_world()
+    assert len(world.locations) <= 6
+    assert len(world.npcs) <= 6
+    assert len(world.items) <= 9
+    assert len(world.factions) <= 2
+    assert len(world.quests) <= 2
+
+
+def test_shipped_world_is_authored_for_the_prompt_blocks():
+    """Empty `secrets` or `hides` are silently allowed by the schema, and a
+    location or character with none contributes nothing to DM-ONLY NOTES — the
+    fields that do most of the work of making the DM feel like it knows more
+    than it says."""
+    world = load_world()
+    for loc_id, loc in world.locations.items():
+        assert loc.secrets, f"{loc_id} has no secrets"
+    for npc_id, npc in world.npcs.items():
+        assert npc.wants, f"{npc_id} has no wants"
+        assert npc.knows, f"{npc_id} has no knows"
+        assert npc.hides, f"{npc_id} has no hides"
+
+
+def test_every_shipped_location_is_reachable_from_the_start():
+    """A room nothing leads to can never be played. The loader validates that
+    exits resolve, which does not catch an island."""
+    world = load_world()
+    start = world.meta.start_location
+    seen, queue = {start}, [start]
+    while queue:
+        for nxt in world.locations[queue.pop()].exits:
+            if nxt not in seen:
+                seen.add(nxt)
+                queue.append(nxt)
+    assert seen == set(world.locations), f"unreachable: {set(world.locations) - seen}"
+
+
 def test_minimal_world_is_valid(tmp_path):
     assert load_world(_write(tmp_path)).meta.name == "Test"
 

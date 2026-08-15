@@ -13,7 +13,7 @@ where the build can stall.
 
 ## 0. Build status
 
-Phases R through 6 are **implemented**. 81 tests pass with no network access.
+Phases R through 6 are **implemented**. 84 tests pass with no network access.
 
 What remains is gated on Novita reachability, not on code:
 
@@ -22,7 +22,7 @@ What remains is gated on Novita reachability, not on code:
 | G0 — model ids resolved against the live catalog | **Cleared.** Base URL corrected to `https://api.novita.ai/openai`; narrator `moonshotai/kimi-k2-instruct`, extractor `meta-llama/llama-3.3-70b-instruct` |
 | G1 — narration reflects state | **Cleared** on `meta-llama/llama-3.3-70b-instruct`. Two bugs found by doing it: reasoning-model starvation, and item canon never being injected |
 | G2 — extractor JSON ≥ 8/10 | **Cleared** on `meta-llama/llama-3.3-70b-instruct`. Reasoning models starve here too and are not viable for either role |
-| README sample transcript | **Done** — real captured session, including both adversarial probes |
+| README sample transcript | **Re-open.** The world was rewritten; the captured transcripts belong to the old one and are marked stale |
 
 Everything else in this document is the record of how it was built and what the
 open decisions were.

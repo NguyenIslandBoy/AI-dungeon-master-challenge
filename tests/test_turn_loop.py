@@ -25,63 +25,63 @@ def test_a_short_playthrough_keeps_state_exact(world, state):
     client = StubClient(
         # turn 1 — take the letter and state a preference
         "The wax splits under your thumb.",
-        json.dumps({"add_items": ["sealed_letter"], "new_traits": ["distrusts wizards"]}),
-        # turn 2 — walk out to the shore
-        "Rain takes you sideways the moment you clear the door.",
-        json.dumps({"move_to": "shore_path", "quest_updates": {"the_dark_night": "asked"}}),
+        json.dumps({"add_items": ["letter"], "new_traits": ["distrusts wizards"]}),
+        # turn 2 — walk out to the yard
+        "Weather takes you sideways the moment you clear the door.",
+        json.dumps({"move_to": "yard", "quest_updates": {"q_light": "seen"}}),
         # turn 3 — the narrator hallucinates a sword and a shortcut to the tower
-        "You find a greatsword wedged in the rocks, and a hidden stair to the lamp room.",
-        json.dumps({"add_items": ["greatsword"], "move_to": "lamp_room"}),
+        "You find a greatsword in the mud, and a hidden stair straight to the tower.",
+        json.dumps({"add_items": ["greatsword"], "move_to": "tower"}),
     )
 
     state = run_turn(client, world, state, transcript,
                      "I pick up the letter. I don't trust wizards.").state
-    assert state.inventory == ["sealed_letter"]
+    assert state.inventory == ["letter"]
     assert state.player_traits == ["distrusts wizards"]
 
-    state = run_turn(client, world, state, transcript, "I go out to the shore").state
-    assert state.current_location == "shore_path"
-    assert state.quest_flags["the_dark_night"] == "asked"
+    state = run_turn(client, world, state, transcript, "I go out to the yard").state
+    assert state.current_location == "yard"
+    assert state.quest_flags["q_light"] == "seen"
 
-    result = run_turn(client, world, state, transcript, "I look around the rocks")
+    result = run_turn(client, world, state, transcript, "I look around the mud")
     state, rejected = result.state, result.rejected
     # Prose said sword. State says no sword. State wins.
-    assert state.inventory == ["sealed_letter"]
+    assert state.inventory == ["letter"]
     assert any("unknown item 'greatsword'" in r for r in rejected)
-    # No hidden stair exists: from the shore the tower is reached via the landing,
+    # No hidden stair exists: from the yard the tower is reached via the hall,
     # so the player walks back there rather than teleporting up it.
-    assert state.current_location == "lighthouse_landing"
-    assert any("stepped to 'lighthouse_landing'" in r for r in rejected)
+    assert state.current_location == "hall"
+    assert any("stepped to 'hall'" in r for r in rejected)
 
     assert state.turn_count == 3
-    assert state.visited == ["lighthouse_landing", "shore_path"]
+    assert state.visited == ["hall", "yard"]
 
 
 def test_a_rejected_move_corrects_the_narrator_next_turn(world, state):
-    """Observed live: the move to the lamp room was correctly rejected, but the
+    """Observed live: the move to a two-hop room was correctly rejected, but the
     prose described the player climbing the stair and arriving anyway. State
     stayed right while the story walked off without it. The validator's
     rejections are the only signal that can pull it back."""
     transcript = Transcript()
     client = StubClient(
-        "You climb the stair. The lamp room waits, full of light.",
-        json.dumps({"move_to": "lamp_room"}),
+        "You climb the stair. The tower waits, full of light.",
+        json.dumps({"move_to": "tower"}),
     )
-    result = run_turn(client, world, state, transcript, "I take the stair to the lamp room")
+    result = run_turn(client, world, state, transcript, "I take the stair to the tower")
 
     # One room per turn: they reach the stair, not the room at the top of it.
-    assert result.state.current_location == "stair_ascent"
+    assert result.state.current_location == "stair"
     assert result.state.pending_corrections
     correction = result.state.pending_corrections[0]
-    assert "got only as far as The Spiral Stair" in correction
+    assert "got only as far as The Stair" in correction
     assert "did not go inside it" in correction
     # Naming the real exits gives the narrator somewhere legitimate to go, rather
     # than only telling it what it got wrong.
-    assert "The Landing" in correction and "The Lamp Room" in correction
+    assert "The Hall" in correction and "The Tower" in correction
 
     system, _ = context.build(result.state, world, transcript, "what now?")
     assert "CORRECTIONS" in system
-    assert "The Spiral Stair" in system
+    assert "The Stair" in system
 
 
 def test_a_hallucinated_item_is_disowned_to_the_narrator(world, state):
@@ -94,8 +94,8 @@ def test_a_hallucinated_item_is_disowned_to_the_narrator(world, state):
 
 def test_corrections_are_owed_for_exactly_one_turn(world, state):
     transcript = Transcript()
-    bad = StubClient("You stride into the lamp room.", json.dumps({"move_to": "lamp_room"}))
-    state = run_turn(bad, world, state, transcript, "up to the lamp room").state
+    bad = StubClient("You stride into the tower.", json.dumps({"move_to": "tower"}))
+    state = run_turn(bad, world, state, transcript, "up to the tower").state
     assert state.pending_corrections
 
     good = StubClient("You stay where you are.", json.dumps({}))
@@ -109,10 +109,10 @@ def test_corrections_are_owed_for_exactly_one_turn(world, state):
 def test_bookkeeping_rejections_never_reach_the_narrator(world, state):
     """An out-of-scene item is allowed and merely logged; nothing in the story
     needs to change, so the narrator must not be told to retract anything."""
-    client = StubClient("She presses a charm into your hand.", json.dumps({"add_items": ["tide_charm"]}))
+    client = StubClient("She presses a charm into your hand.", json.dumps({"add_items": ["journal"]}))
     result = run_turn(client, world, state, Transcript(), "I accept the charm")
 
-    assert "tide_charm" in result.state.inventory
+    assert "journal" in result.state.inventory
     assert any("was not in scene" in r for r in result.rejected)  # logged
     assert result.state.pending_corrections == []  # but not a correction
 
@@ -147,10 +147,10 @@ def test_a_dropped_delta_is_reported_not_swallowed(world, state):
 
 
 def test_a_successful_delta_does_not_flag_extraction_failure(world, state):
-    client = StubClient("You take it.", json.dumps({"add_items": ["rusty_key"]}))
+    client = StubClient("You take it.", json.dumps({"add_items": ["lamp"]}))
     result = run_turn(client, world, state, Transcript(), "I take the key")
     assert result.extraction_failed is False
-    assert result.state.inventory == ["rusty_key"]
+    assert result.state.inventory == ["lamp"]
 
 
 def test_an_empty_completion_is_a_failed_turn_not_a_silent_one(world, state):
@@ -169,7 +169,7 @@ def test_an_early_preference_reaches_a_later_prompt(world, state):
     the prompt many turns later, without depending on the summariser."""
     transcript = Transcript()
     client = StubClient(
-        "The Wrecker grunts.",
+        "The Warden grunts.",
         json.dumps({"new_traits": ["distrusts wizards"]}),
     )
     state = run_turn(client, world, state, transcript, "wizards give me the creeps").state
@@ -202,7 +202,7 @@ def test_summariser_folds_aged_out_turns_and_is_told_not_to_duplicate_state(worl
 def test_save_and_load_round_trips_state_and_memory(world, state, tmp_path):
     transcript = Transcript(summary="Something happened.")
     transcript.append("I take the key", "It is cold.")
-    delta = StateDelta(add_items=["rusty_key"], new_traits=["distrusts wizards"])
+    delta = StateDelta(add_items=["lamp"], new_traits=["distrusts wizards"])
     state, _ = apply_delta(state, delta, world)
 
     path = tmp_path / "save.json"
@@ -213,4 +213,4 @@ def test_save_and_load_round_trips_state_and_memory(world, state, tmp_path):
     assert restored_transcript.summary == "Something happened."
     assert restored_transcript.turns[0].player == "I take the key"
     # A reviewer should be able to open a save and see the state layer is real.
-    assert "rusty_key" in json.loads(path.read_text())["state"]["inventory"]
+    assert "lamp" in json.loads(path.read_text())["state"]["inventory"]

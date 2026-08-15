@@ -1,0 +1,132 @@
+# A deliberately dull world, used by every deterministic test.
+#
+# The shipped world.yaml is content: it gets rewritten, renamed and re-tuned as
+# the fiction improves, and unit tests that quote it break every time. They were
+# coupled to it once and 27 of them failed on the first rewrite. So the rules
+# are tested here, against ids chosen to stay still, and the real world is
+# checked only for the things that must be true of any world: that it loads,
+# validates, and stays within budget.
+#
+# Topology is chosen to exercise the interesting cases:
+#   hall <-> stair <-> tower      two hops, for step_toward
+#   hall <-> yard                 a branch
+#   cellar                        reachable from nowhere
+
+meta:
+  name: "Testholme"
+  start_location: hall
+  tone: "Flat and functional. Nothing here is meant to be enjoyed."
+  opening_scene: "You are in the hall. There is a lamp and a letter."
+
+history:
+  - "The tower has stood for a hundred years."
+  - "Nobody has been down to the cellar in living memory."
+
+factions:
+  keepers:
+    name: "The Keepers"
+    creed: "Keep it."
+    wants: "To keep it."
+    known_for: "Keeping it."
+
+locations:
+  hall:
+    name: "The Hall"
+    description: "A wide stone room with a table in it."
+    exits: [stair, yard]
+    npcs: [ghost]
+    items: [lamp, letter]
+    secrets:
+      - "The table has been moved recently."
+  stair:
+    name: "The Stair"
+    description: "Steps winding up out of the hall."
+    exits: [hall, tower]
+    npcs: []
+    items: [journal]
+    secrets:
+      - "The seventh step is not worn like the others."
+  tower:
+    name: "The Tower"
+    description: "A round room at the top of the stair."
+    exits: [stair]
+    npcs: [warden]
+    items: [beacon]
+    secrets:
+      - "The warden has not slept in this room for years."
+  yard:
+    name: "The Yard"
+    description: "Mud, a wall, and weather."
+    exits: [hall]
+    npcs: []
+    items: [spade]
+    secrets:
+      - "Something was buried here and dug up again."
+  cellar:
+    name: "The Cellar"
+    description: "Dark, and reachable from nowhere on purpose."
+    exits: []
+    npcs: []
+    items: []
+    secrets: []
+
+npcs:
+  ghost:
+    name: "The Ghost"
+    role: "Haunts the hall."
+    faction: keepers
+    default_disposition: 10
+    wants: "To be noticed."
+    knows:
+      - "Where the table used to stand."
+    hides:
+      - "That it moved the table itself."
+  warden:
+    name: "The Warden"
+    role: "Tends the tower."
+    faction: null
+    default_disposition: 20
+    wants: "To be left alone."
+    knows:
+      - "How the beacon works."
+    hides:
+      - "That the beacon has never once been lit."
+
+items:
+  lamp:
+    name: "a lamp"
+    description: "Brass, dented, full of oil."
+    notes: "It burns for exactly one night and no longer."
+  letter:
+    name: "a letter"
+    description: "Folded twice, sealed with grey wax."
+    notes: "It reads: 'Do not go up.'"
+  journal:
+    name: "a journal"
+    description: "Water-swollen, bound in cloth."
+    notes: "The last nine pages have been torn out."
+  beacon:
+    name: "the beacon"
+    description: "A great lens on a rusted mount."
+    notes: "The mechanism turns but nothing is lit."
+  spade:
+    name: "a spade"
+    description: "Short-handled, the blade worn to a crescent."
+    notes: "There is fresh earth on it."
+
+quests:
+  q_light:
+    name: "The Light"
+    summary: "Find out why the beacon is never lit."
+    stages:
+      unaware: "Nothing noticed yet."
+      seen: "The player has seen the beacon."
+      done: "The player knows why it stays dark."
+    start: unaware
+  q_dig:
+    name: "The Digging"
+    summary: "Find out what was buried in the yard."
+    stages:
+      unaware: "Nothing noticed yet."
+      found: "The player has found the hole."
+    start: unaware

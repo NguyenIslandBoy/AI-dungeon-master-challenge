@@ -1,316 +1,344 @@
 meta:
-  name: "The Keeper's Reach"
-  start_location: lighthouse_landing
+  name: "The Long Ebb"
+  start_location: the_drift
   tone: |
-    Gothic coastal folk-horror. Rain, salt, and old obligations. The sea is not
-    evil, it is patient. Nobody in this world is lying to the player, but almost
-    everybody is leaving something out.
+    Quiet dread on a cold coast. Nothing leaps out. The horror is that everyone
+    here is kind, and careful, and has agreed on something they will not say in
+    front of you. Understatement carries the weight: the wrong detail noticed
+    twice is worse than anything described.
   opening_scene: |
-    You awaken on the floor of a lighthouse you do not remember entering.
+    The ferry puts you ashore an hour before the weather closes.
 
-    Rain hammers the seaward windows in long grey sheets. Somewhere far above,
-    a light is still turning — you can feel the slow sweep of it through the
-    boards under your back, patient as a heartbeat.
+    Ordell is a village on a shingle spit, four streets wide, the sea on both
+    sides of it. Nets on frames. Boats up above the tideline, all of them,
+    though the light is good and the tide is right for going out.
 
-    On a wooden table: a rusty key and a sealed letter, the wax stamped with a
-    crest of three gulls over a wave. A staircase spirals up into the dark. A
-    warped door faces the shore, and beneath it, seawater is coming in.
+    People come out to watch you land. Not many. They do not wave, and they do
+    not go back inside either. A woman with salt-white hair is mending a net on
+    the steps of the loft, and she smiles at you like someone who has been told
+    company is coming.
+
+    Your papers are in your coat: an appointment to record the village's
+    objection to the harbour works. Behind you, the ferryman is already tying
+    off. He does not seem to be planning to leave.
 
     What do you do?
 
 history:
-  - "Eleven years ago the packet-ship Meridian broke apart on the Reach in a
-     winter storm. Every soul aboard was lost, and the wreck has never been found."
-  - "The lighthouse has burned every night since without fail, which the
-     coastal villages take as proof that the Keeper is faithful, and the
-     Tide-Wardens take as proof of something else."
-  - "House Valen's fortune was built on salvage rights to this coast. Those
-     rights lapse if the Reach goes a full year without a wreck."
-  - "The Tide-Wardens swore an oath at the drowned chapel to keep the light
-     burning. The oath binds them to truth — no Warden can state a falsehood —
-     but it never bound them to speak."
-  - "The village of Tharrow, four miles inland, no longer sends anyone to the
-     Reach after dark. They will not say why, and they are not Wardens, so
-     they may simply be sensible."
+  - "Nineteen years ago the Ordell fleet went out on a flat calm and nine boats
+     did not come back. There was no storm that night. The Commission's inquiry
+     recorded the cause as 'undetermined' and was not invited to return."
+  - "Ordell has not lost a boat since. Not one, in nineteen years, on a coast
+     that takes two or three a winter from every other village along it."
+  - "The Coastal Assay Commission wants the spit for a deep-water harbour. The
+     village has objected to every survey, in writing, politely, without ever
+     giving a reason a clerk could write down."
+  - "There is a custom in Ordell that a thing named aloud is a thing invited in.
+     Outsiders find it quaint. Nobody in Ordell finds it quaint."
+  - "The parish register lists every birth on the spit for two hundred years.
+     Nine entries from nineteen years ago have been scraped out with a knife,
+     and one has been added in a different hand."
 
 factions:
-  house_valen:
-    name: "House Valen"
-    creed: "The sea gives to those positioned to receive it."
-    wants: "The light dark for one night, so a ship they have been waiting
-      eleven years for can finally come in — or finally go down."
-    known_for: "Salvage rights, immaculate paperwork, and a crest of three
-      gulls over a wave."
-  tide_wardens:
-    name: "The Tide-Wardens"
-    creed: "The light burns. We do not ask what for."
-    wants: "The light kept burning, and the reason for it kept buried, mostly
-      because they no longer remember the reason and are ashamed of that."
-    known_for: "The oath of truth. A Warden cannot state a falsehood, and has
-      become very skilled at saying almost nothing."
+  drift_council:
+    name: "The Drift Council"
+    creed: "What keeps is kept. What is kept is not discussed."
+    wants: "Ordell exactly as it is: the boats safe, the arrangement intact, and
+      the Commission gone before anyone has to explain anything."
+    known_for: "Immaculate manners, unhurried obstruction, and a way of
+      answering a question with a true sentence about something else."
+  coastal_assay:
+    name: "The Coastal Assay Commission"
+    creed: "A coast is a set of measurements. Measure it and it yields."
+    wants: "The spit surveyed, the objection recorded and overruled, and the
+      harbour begun before the spring estimates are published."
+    known_for: "Charts, seals, and an absolute confidence that whatever is wrong
+      here is a matter of drainage."
 
 locations:
-  lighthouse_landing:
-    name: "The Landing"
-    description: "The ground floor of the lighthouse. Salt-swollen boards, a
-      wooden table, and a cold iron stove that has not been lit in a long time.
-      Rain finds three separate ways through the roof. Seawater is creeping
-      under the shore door, and it is not going back out."
-    exits: [stair_ascent, shore_path]
+  the_drift:
+    name: "The Drift"
+    description: "The shingle landing at the neck of the spit, stones the size
+      of fists that shift and talk under your boots. Every boat in Ordell is
+      hauled up above the tideline and covered, tarred canvas lashed down tight,
+      though the sea today is nothing at all."
+    exits: [net_lofts, the_shallows]
+    npcs: [sarn]
+    items: [passage_papers, salt_lantern]
+    secrets:
+      - "The boats have been up for nineteen years. The tar is fresh. Someone
+         re-covers them every season for a fleet that never launches."
+      - "The shingle is dry above the tideline and dry below it. The tide comes
+         in over these stones and leaves them dry."
+      - "The ferryman who brought the player in has tried to cast off twice
+         since they landed, both times with the tide in his favour, and both
+         times found himself tying on again. He has not mentioned it."
+
+  net_lofts:
+    name: "The Net Lofts"
+    description: "Long open sheds on stilts, hung with nets in every state of
+      repair. It smells of tar, hemp and cold fish. Work goes on here all day
+      and the nets never go into the water."
+    exits: [the_drift, ordell_hall]
+    npcs: [nell]
+    items: [netting_needle, wet_shawl]
+    secrets:
+      - "Nell's netting is beautiful and none of it is finished. Every net in
+         the loft is the same net, unpicked and remade, nineteen years of it."
+      - "The other menders work with their backs to her. Not unkindly. They
+         simply never sit facing her, and none of them has noticed doing it."
+
+  ordell_hall:
+    name: "The Long Hall"
+    description: "One room, three hearths, benches worn to a shine. The village
+      eats here when the weather is bad, which it will be by evening. A tally
+      board hangs by the door where a shipping notice ought to be."
+    exits: [net_lofts, assay_hut, the_shallows]
+    npcs: [mother_gullick]
+    items: [tally_board]
+    secrets:
+      - "The tally board records nights, not catches. Nineteen years of marks,
+         and a handful each winter circled in chalk that nobody rubs out."
+      - "There are places set at the long table that are cleared, washed and
+         set again without anyone eating from them."
+
+  the_shallows:
+    name: "The Shallows"
+    description: "Where the spit runs out into flats that go half a mile at low
+      water. Ribs of old boats stand up out of the sand at intervals, dark and
+      regular, like a fence that used to be something else."
+    exits: [the_drift, ordell_hall, parish_chapel]
     npcs: []
-    items: [rusty_key, sealed_letter]
+    items: [bone_comb]
     secrets:
-      - "There is a fourth set of wet footprints on these boards, and only three
-         living people have come through this door in a year."
-      - "The stove has not been lit in eleven years. Nobody who lives here needs
-         to be warm."
+      - "Nine sets of ribs. They are not wrecks — the timbers are cut, not
+         broken, and they were set into the sand deliberately, prow-first."
+      - "Nothing lives in these flats. No worm casts, no cockles, no birds
+         working the tideline. Half a mile of clean, empty, obedient sand."
 
-  stair_ascent:
-    name: "The Spiral Stair"
-    description: "A hundred and eighty iron steps winding up the tower's throat.
-      Someone has scratched a tally into the wall at shoulder height — thousands
-      of marks, one for every night, made by a hand that never got tired."
-    exits: [lighthouse_landing, lamp_room]
-    npcs: []
-    items: [keepers_journal]
+  parish_chapel:
+    name: "The Parish Chapel"
+    description: "Squat, salt-scoured, older than the village that uses it. A
+      lamp is kept lit in the vestry window facing the water, and has been kept
+      lit long enough that the sill beneath it is burned black."
+    exits: [the_shallows]
+    npcs: [reverend_calder]
+    items: [parish_register]
     secrets:
-      - "The tally marks stop abruptly about a third of the way up, then resume
-         in identical handwriting. The gap is roughly a year's worth."
-      - "The stair is dry. It is the only dry thing in the building."
+      - "The lamp is not a memorial and is not for guiding boats in. It faces
+         the flats, and it is lit at dusk on the nights the board is circled."
+      - "The chapel has no burials from nineteen years ago. Nine families, no
+         graves, and nobody has ever asked Calder about it to his face."
 
-  lamp_room:
-    name: "The Lamp Room"
-    description: "Glass on all sides, streaming with rain. The great lens turns
-      on its bath of mercury, slow and enormous, throwing its beam out into a
-      dark that swallows it whole. It is warm up here, which it should not be."
-    exits: [stair_ascent]
-    npcs: [keeper]
-    items: [lamp_oil]
+  assay_hut:
+    name: "The Assay Hut"
+    description: "New timber, a stove, a folding table under a good lamp, and
+      charts pinned flat with brass weights. The tidiest room on the spit, and
+      the coldest, because nobody in Ordell will bring them fuel."
+    exits: [ordell_hall]
+    npcs: [assayer_pike, hesper]
+    items: [assay_charts, survey_seal]
     secrets:
-      - "The lamp has no fuel line. The Keeper fills it every night from a can
-         that is always full, and has never once wondered about that."
-      - "From up here, on a clear night, you would be able to see the wreck of
-         the Meridian directly below in the shallows. There has not been a clear
-         night in eleven years."
-
-  shore_path:
-    name: "The Shore Path"
-    description: "A shelf of black rock between the tower and the water, wide
-      enough for one person and generous about it. The sea throws itself at the
-      Reach and falls back, over and over, with the air of something rehearsing."
-    exits: [lighthouse_landing, drowned_chapel, valen_boathouse]
-    npcs: [wrecker]
-    items: [storm_lantern]
-    secrets:
-      - "At the lowest tide of the month, the path continues out to a ridge of
-         timber that is unmistakably a hull."
-      - "Nothing has ever washed up on this stretch. Not weed, not driftwood,
-         not bodies. The sea gives this piece of coast a wide berth."
-
-  drowned_chapel:
-    name: "The Drowned Chapel"
-    description: "A chapel built too near the water and long since half-claimed
-      by it. The nave floods to knee height at high tide and drains through the
-      floor at low. Candles burn in the dry upper galleries, tended daily, and
-      have not gone out within living memory."
-    exits: [shore_path]
-    npcs: [maren, ilva]
-    items: [tide_charm, drowned_ledger]
-    secrets:
-      - "The oath-stone at the altar lists every Warden who ever swore. The
-         Keeper's name is on it, in an entry dated eleven years ago."
-      - "The ledger in the vestry records what the light was originally lit
-         for. No living Warden has read past the first page."
-
-  valen_boathouse:
-    name: "The Valen Boathouse"
-    description: "A long shed in a cove the Reach hides from the open sea. New
-      timber, good hinges, oil lamps that get replaced before they gutter. Inside
-      sits a launch with muffled oarlocks, provisioned and waiting, pointed out."
-    exits: [shore_path]
-    npcs: [corvin, tallow]
-    items: [valen_seal, wax_stub]
-    secrets:
-      - "The launch has been provisioned and re-provisioned for eleven years.
-         The salt beef is changed monthly. Nobody has ever rowed it out."
-      - "Corvin's orders are sealed and he has not opened them. He is waiting
-         for one dark night, and he does not actually know what happens after."
+      - "Pike's soundings of the flats disagree with each other by a fathom and
+         a half, taken a day apart from the same marks. He has re-taken them
+         four times and written none of it down."
+      - "Hesper has been keeping a second notebook and has not told Pike."
 
 npcs:
-  keeper:
-    name: "The Keeper"
-    role: "Lighthouse keeper of the Reach, eleven years in the post."
-    faction: tide_wardens
-    default_disposition: 10
-    wants: "To keep the light burning tonight, and to be told he is doing well.
-      Underneath that, without ever surfacing it: to be allowed to stop."
+  nell:
+    name: "Nell Ashe"
+    role: "Net-mender. Born on the spit, she will tell you, and has never left it."
+    faction: drift_council
+    default_disposition: 25
+    wants: "Company, and to be asked ordinary questions. Nobody has asked her an
+      ordinary question in a long time and she is starved for it without knowing
+      that is what the hunger is."
     knows:
-      - "The mechanics of the light, in loving and exhaustive detail."
-      - "Every ship that has passed the Reach in eleven years, by name."
-      - "That the Meridian went down the winter he took the post."
-      - "That House Valen has asked him twice to let the light fail, and that he
-         said no twice."
+      - "Every family on the spit, their boats, their children, their debts."
+      - "How to mend anything made of rope, in exhaustive and happy detail."
+      - "That the village is kind to her and that this is not quite the same as
+         being liked, though she cannot say where the difference sits."
     hides:
-      - "That he cannot descend past the halfway mark of the stair, and has not
-         tried in years because trying frightens him."
-      - "That he does not remember the winter the Meridian was lost — only the
-         morning after."
-      - "That he is never hungry, and has stopped noticing that he is never hungry."
+      - "Nothing at all, deliberately. She is the only person here with nothing
+         to hide, which is what makes her frightening to talk to."
+      - "She cannot account for the nights the board is circled, and has stopped
+         reaching for those mornings because reaching makes her feel unwell."
+      - "Her hair is wet at the roots on those mornings. She assumes it is the
+         weather. It has been the weather for nineteen years."
 
-  maren:
-    name: "Warden Maren"
-    role: "Senior Tide-Warden of the drowned chapel."
-    faction: tide_wardens
-    default_disposition: 0
-    wants: "To keep the player away from the vestry ledger without ever telling
-      them a single untrue thing about it."
-    knows:
-      - "That the Keeper's name is carved on the oath-stone, dated eleven years back."
-      - "That the oath binds Wardens to truth, and that omission is not falsehood."
-      - "That House Valen have a boathouse in the cove and a man sitting in it."
-    hides:
-      - "That she has read the first page of the ledger and stopped there on purpose."
-      - "That she has known what the Keeper is for nine years and has told no one,
-         including Ilva."
-      - "That she is frightened of what happens to the Reach if the light stops."
-
-  ilva:
-    name: "Novice Ilva"
-    role: "A Tide-Warden of two years, still enthusiastic about it."
-    faction: tide_wardens
-    default_disposition: 20
-    wants: "To be useful, and to be taken seriously by Maren."
-    knows:
-      - "The full text of the oath, which she can recite and likes to."
-      - "That the chapel candles have never gone out, which she finds beautiful."
-      - "That Maren goes to the vestry alone and comes back quiet."
-    hides:
-      - "Nothing deliberately. She is bound to truth and has not yet learned the
-         art of omission, which makes her the most dangerous person here to
-         House Valen and the most useful to the player."
-
-  corvin:
-    name: "Corvin Valen"
-    role: "A minor son of House Valen, posted to the cove and forgotten there."
-    faction: house_valen
-    default_disposition: -10
-    wants: "One dark night, a clean report, and a posting somewhere with fewer
-      gulls. He is not cruel; he is bored, and boredom has made him thorough."
-    knows:
-      - "That his House's salvage rights lapse if the Reach goes a year without a wreck."
-      - "That the Keeper has refused them twice."
-      - "That he was told the launch would be needed within the month — eleven
-         years ago."
-    hides:
-      - "That his orders are still sealed and he has never opened them."
-      - "That he has come to rather like the Keeper, which is a problem."
-      - "That he hired Tallow himself, off the books, and it was not authorised."
-
-  tallow:
-    name: "Tallow"
-    role: "A hedge-wizard on retainer, hired to make weather and paid not to ask."
-    faction: house_valen
+  mother_gullick:
+    name: "Mother Gullick"
+    role: "Eldest of the Drift Council. Keeps the tally board and the peace."
+    faction: drift_council
     default_disposition: -5
-    wants: "To be paid, to be believed about the storm, and to leave the Reach
-      alive — in that order until recently, when the order changed."
+    wants: "You off the spit with your objection recorded and nothing else in
+      your notebook. She will be hospitable about it for as long as it works."
     knows:
-      - "That the storm over the Reach is not his doing and never has been."
-      - "That he has been billing House Valen for eleven years for weather he
-         does not make."
-      - "That something under the water objects to being looked at."
+      - "What the arrangement is, what it costs, and precisely who agreed to it."
+      - "That the custom against naming things is not superstition and that
+         letting outsiders think it is has been very convenient."
+      - "That Sarn is going to do something stupid, and roughly when."
     hides:
-      - "That he is a fraud in every respect except one: he can tell when
-         something is being held in place by will rather than by nature, and the
-         light on this Reach is being held in place by will."
-      - "That he has tried to leave twice and both times walked back into the cove."
+      - "That she was one of the nine who decided, and the only one still above
+         ground to have decided it."
+      - "That she has never once been able to look at the circled nights on her
+         own board."
+      - "That she does not believe it is working any more."
 
-  wrecker:
-    name: "The Wrecker"
-    role: "A scavenger who works the Reach and has never once found anything."
-    faction: null
-    default_disposition: 0
-    wants: "A single piece of salvage, after eleven years, to prove the coast is
-      an ordinary coast and he is an ordinary man wasting an ordinary life."
+  sarn:
+    name: "Sarn Vellacott"
+    role: "Young fisherman. Tars boats that will not be launched."
+    faction: drift_council
+    default_disposition: 10
+    wants: "To take a boat out. Just once, just him, and prove the sea is only
+      the sea — and, underneath that, to make somebody finally say it out loud."
     knows:
-      - "Every tide, rock and channel on this stretch, precisely."
-      - "That nothing washes up here, and that this is not normal."
-      - "That the Warden called Maren visits the boathouse cove at night, which
-         he finds interesting and has told nobody."
+      - "The tides and the channel better than anyone under sixty."
+      - "That the village will not stop him going out, which frightens him far
+         more than being forbidden would."
+      - "That his father was one of the nine, and that his mother will not keep
+         his father's name in the house."
     hides:
-      - "That he was aboard the Meridian's sister ship and knows what she was
-         carrying."
-      - "That he does not scavenge the Reach for salvage. He is looking for one
-         specific body."
+      - "That he has already taken a boat out once, at night, and came back, and
+         will not say what turned him back."
+      - "That he is in love with Nell and has understood for about a year why
+         that is not a thing he can act on."
+
+  reverend_calder:
+    name: "Reverend Calder"
+    role: "Keeps the chapel, the register, and the lamp in the vestry window."
+    faction: drift_council
+    default_disposition: 0
+    wants: "To be forgiven by somebody qualified to do it, and to be asked
+      directly, because he has decided he will not lie if he is asked directly."
+    knows:
+      - "Which nine entries were scraped from the register, and by whose hand."
+      - "What the added entry says, and the date on it."
+      - "That the lamp is lit at dusk on circled nights, because he lights it."
+    hides:
+      - "That the added entry is in his own handwriting."
+      - "That he has drafted a confession eleven times and burned it eleven times."
+      - "That he does not think what Ordell did was wrong. That is the part he
+         cannot forgive himself for."
+
+  assayer_pike:
+    name: "Assayer Pike"
+    role: "Commission surveyor, four weeks on the spit, forty years on coasts."
+    faction: coastal_assay
+    default_disposition: 5
+    wants: "A clean survey and a posting somewhere with a railway station. He is
+      not a fool and he is not a villain; he is a competent man whose competence
+      has stopped working here."
+    knows:
+      - "That the village's written objections are, technically, all true."
+      - "That Ordell has not lost a boat in nineteen years, which he has checked
+         three times against the Commission's own loss registers."
+      - "That his soundings of the flats will not agree with one another."
+    hides:
+      - "That he has stopped taking soundings at dusk and told himself it is
+         about the light."
+      - "That he has already written to request reassignment, and has not sent it."
+
+  hesper:
+    name: "Hesper Quill"
+    role: "Commission clerk. Twenty-three, first posting, writes everything down."
+    faction: coastal_assay
+    default_disposition: 15
+    wants: "To be taken seriously, and to be told she is not imagining it."
+    knows:
+      - "The Commission's procedure, exhaustively, and that Pike is departing
+         from it."
+      - "That she has counted the places set at the long table twice and got
+         different numbers."
+      - "That Nell Ashe does not appear in the parish register, and that Hesper
+         checked it for an entirely innocent reason."
+      - "That the Commission's ledgers record three men ferried out to this spit
+         and three returned, and that the ferryman counts only two."
+    hides:
+      - "Nothing she would not tell you if you were kind to her for five minutes.
+         She is the fastest route to the truth on this spit and everyone except
+         Mother Gullick has failed to notice she exists."
 
 items:
-  rusty_key:
-    name: "a rusty key"
-    description: "Iron, hand-forged, salt-eaten to a fur. Too large for a door
-      and too small for a gate."
-    notes: "Opens the vestry cabinet in the drowned chapel. Nothing else."
-  sealed_letter:
-    name: "a sealed letter"
-    description: "Good paper gone soft with damp. The wax bears three gulls over
-      a wave. It is addressed to the Keeper and has never been opened."
-    notes: "Reads: 'Twice is refusal. A third asking will not be an asking. —V.'"
-  keepers_journal:
-    name: "the Keeper's journal"
-    description: "Eleven years of nightly entries in a steady hand. Weather,
-      shipping, the state of the lens."
-    notes: "The entries for one winter month are written in the same hand but in
-      the past tense, as though copied from somewhere."
-  lamp_oil:
-    name: "a can of lamp oil"
-    description: "A dented tin can with a long spout. It is full. It is always full."
-    notes: "Its weight does not change when poured."
-  storm_lantern:
-    name: "a storm lantern"
-    description: "The Wrecker's own, shuttered on three sides, guttering but game."
-    notes: "The one reliable light on the Reach that nobody swore an oath about."
-  tide_charm:
-    name: "a tide-charm"
-    description: "Knotted cord and a drilled stone, the kind Wardens give to
-      people they have decided to worry about."
-    notes: "Marks the bearer as under Warden protection. NPCs of the Tide-Wardens
-      notice it."
-  drowned_ledger:
-    name: "the vestry ledger"
-    description: "A chapel record book, swollen to twice its bound thickness. The
-      first page states the oath. The rest states the reason for it."
-    notes: "Reading past the first page is the pivot of the whole Reach."
-  valen_seal:
-    name: "a Valen seal-matrix"
-    description: "A brass stamp of three gulls over a wave, worn smooth at the
-      edges from a decade of idle handling."
-    notes: "Anything stamped with this will be believed by anyone who has dealt
-      with House Valen."
-  wax_stub:
-    name: "a stub of sealing wax"
-    description: "Oxblood red, much used, softened by pocket heat."
-    notes: "Pairs with the seal-matrix. Together they can close a letter that was
-      never meant to be closed again."
+  passage_papers:
+    name: "your appointment papers"
+    description: "Commission letterhead, your name, a seal, and one paragraph of
+      instruction. Damp at the corners already."
+    notes: "They appoint the bearer to record Ordell's objection to the harbour
+      works — not to rule on it. Nobody in Ordell has read them and every one of
+      them assumes they say something worse."
+  salt_lantern:
+    name: "a lantern from the boat"
+    description: "Tam's spare. Brass gone green, glass clouded, but it lights and
+      it holds a flame in wind."
+    notes: "The only light on the spit that nobody else decides when to light."
+  netting_needle:
+    name: "Nell's netting needle"
+    description: "Whalebone, worn to a warm shine, wrapped at the grip with thread
+      that has been renewed many times."
+    notes: "It is nineteen years old at most, and worn like a tool used for sixty.
+      Nell will hand it to you without hesitating if you ask about her work."
+  wet_shawl:
+    name: "a grey shawl"
+    description: "Folded on a bench in the lofts, good wool, well kept."
+    notes: "It is damp. It is always damp. It has never been in the water and it
+      is damp at the shoulders, where hair would lie."
+  tally_board:
+    name: "the tally board"
+    description: "A plank of oak by the hall door, ruled into columns and scored
+      with nineteen years of marks in different hands."
+    notes: "The columns are dates, not catches. Roughly four nights each winter
+      are circled in chalk. The circles are never rubbed out and never explained."
+  bone_comb:
+    name: "a comb"
+    description: "Bone, fine-toothed, half-buried in the sand of the flats.
+      Unweathered. It could have been dropped this morning."
+    notes: "Nell's, and it is one of nine identical combs that have turned up on
+      these flats over the years. She will not recognise it."
+  parish_register:
+    name: "the parish register"
+    description: "Two hundred years of births on the spit, in a dozen hands, kept
+      dry and kept well."
+    notes: "Nine entries from nineteen years ago have been scraped out. One entry
+      has been added below them, dated the same night, in Calder's hand:
+      'Ashe, Nell. Of this parish.'"
+  assay_charts:
+    name: "Pike's charts"
+    description: "The flats, sounded and re-sounded, pinned flat under brass."
+    notes: "Four surveys of the same ground, a day apart, disagreeing by a fathom
+      and a half. Pike has annotated none of them. The fourth is unfinished."
+  survey_seal:
+    name: "the Commission seal"
+    description: "Brass, heavy, the Assay's anchor-and-rule. It makes a document
+      true as far as anyone off this spit is concerned."
+    notes: "With it, an objection can be recorded — or withdrawn — and neither
+      Ordell nor the Commission would be able to say otherwise."
 
 quests:
-  the_dark_night:
-    name: "The Third Asking"
-    summary: "House Valen has asked the Keeper twice to let the light fail. The
-      letter on the table is the third asking, and it is not a request."
+  the_arrangement:
+    name: "The Arrangement"
+    summary: "Ordell has not lost a boat in nineteen years, on a coast that takes
+      two or three a winter. Something is being paid, and the village has agreed
+      never to say so aloud."
     stages:
-      unaware: "The player has not yet read the letter or met Corvin."
-      asked: "The player knows House Valen wants the light dark for one night."
-      bargained: "The player has heard Corvin's offer directly."
-      refused: "The player has sided with the light."
-      complied: "The player has agreed to help darken the light."
+      unaware: "The player has noticed nothing beyond a village that is unfriendly
+        to surveyors."
+      uneasy: "The player has seen at least one thing that does not add up — the
+        tarred boats, the circled nights, the dry shingle."
+      shown: "Someone has told the player what Ordell does, or as near as the
+        custom lets them come."
+      recorded: "The player has set it down under the Commission seal."
+      buried: "The player has agreed to leave it out of the record."
     start: unaware
 
-  what_the_keeper_forgot:
-    name: "What the Keeper Forgot"
-    summary: "The Keeper has tended the light for eleven years. He drowned in
-      the first of them."
+  what_nell_is:
+    name: "What Nell Ashe Is"
+    summary: "Nell was written into the parish register nineteen years ago, in
+      Calder's hand, on the night nine other entries were scraped out."
     stages:
-      unaware: "No reason to suspect anything about the Keeper."
-      suspicious: "The player has noticed at least one impossibility about him."
-      confirmed: "The player has proof — the oath-stone, the ledger, or the journal."
-      told_him: "The player told the Keeper what he is."
-      kept_silent: "The player learned the truth and chose to let him tend the light."
+      unaware: "Nell is a net-mender who is kind to strangers."
+      suspicious: "The player has noticed one impossibility about her."
+      certain: "The player has proof — the register, the combs, or the shawl."
+      told_her: "The player has told Nell what she is."
+      kept_silent: "The player has learned what she is and let her go on mending."
     start: unaware

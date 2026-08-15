@@ -8,7 +8,7 @@ from dungeon_master.llm.extractor import extract, parse_delta
 from dungeon_master.state.store import apply_delta
 from tests.stubs import StubClient
 
-VALID = '{"add_items": ["rusty_key"], "new_traits": ["distrusts wizards"]}'
+VALID = '{"add_items": ["lamp"], "new_traits": ["distrusts wizards"]}'
 
 
 @pytest.mark.parametrize(
@@ -23,7 +23,7 @@ VALID = '{"add_items": ["rusty_key"], "new_traits": ["distrusts wizards"]}'
 )
 def test_fences_and_chatter_are_stripped(raw):
     delta = parse_delta(raw)
-    assert delta.add_items == ["rusty_key"]
+    assert delta.add_items == ["lamp"]
     assert delta.new_traits == ["distrusts wizards"]
 
 
@@ -40,13 +40,13 @@ def test_extract_returns_a_delta(world, state):
     client = StubClient(f"```json\n{VALID}\n```")
     delta = extract(client, world, state, "I take the key", "The key is cold.")
     assert delta is not None
-    assert delta.add_items == ["rusty_key"]
+    assert delta.add_items == ["lamp"]
 
 
 def test_extract_retries_once_then_succeeds(world, state):
     client = StubClient("not json at all", VALID)
     delta = extract(client, world, state, "I take the key", "The key is cold.")
-    assert delta is not None and delta.add_items == ["rusty_key"]
+    assert delta is not None and delta.add_items == ["lamp"]
     assert len(client.calls) == 2
     assert "could not be parsed" in client.calls[1]["messages"][-1]["content"]
 
@@ -60,8 +60,8 @@ def test_extractor_is_told_only_the_reachable_exits(world, state):
     client = StubClient(VALID)
     extract(client, world, state, "I go up", "You climb.")
     user = client.calls[0]["messages"][0]["content"]
-    assert "reachable from here: stair_ascent, shore_path" in user
-    assert "lamp_room" not in user.split("reachable from here:")[1].split("\n")[0]
+    assert "reachable from here: stair, yard" in user
+    assert "tower" not in user.split("reachable from here:")[1].split("\n")[0]
 
 
 def test_hallucinated_delta_survives_parsing_but_dies_at_apply(world, state):
