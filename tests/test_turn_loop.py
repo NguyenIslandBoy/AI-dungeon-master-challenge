@@ -69,7 +69,12 @@ def test_a_rejected_move_corrects_the_narrator_next_turn(world, state):
 
     assert result.state.current_location == "lighthouse_landing"
     assert result.state.pending_corrections
-    assert "did NOT travel" in result.state.pending_corrections[0]
+    correction = result.state.pending_corrections[0]
+    assert "did NOT travel" in correction
+    # Naming the real exits gives the narrator somewhere legitimate to go, rather
+    # than only telling it what it got wrong.
+    assert "The Spiral Stair" in correction and "The Shore Path" in correction
+    assert "The Lamp Room" not in correction
 
     system, _ = context.build(result.state, world, transcript, "what now?")
     assert "CORRECTIONS" in system

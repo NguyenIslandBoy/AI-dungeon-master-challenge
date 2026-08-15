@@ -46,9 +46,15 @@ def corrections_from(rejected: list[str], state: GameState, world: World) -> lis
     out: list[str] = []
     for reason in rejected:
         if reason.startswith("move_to:"):
+            exits = ", ".join(
+                world.locations[e].name
+                for e in world.locations[state.current_location].exits
+            )
             out.append(
                 f"The player did NOT travel anywhere. They are still in {here}. "
-                "Any journey, arrival, or new room you described did not happen."
+                "Any journey, arrival, or new room you described did not happen — "
+                "and anything you said about that room is not true of it. From "
+                f"here they can reach only: {exits}."
             )
         elif reason.startswith("add_items: unknown item"):
             item = reason.split("'")[1] if "'" in reason else "that object"
