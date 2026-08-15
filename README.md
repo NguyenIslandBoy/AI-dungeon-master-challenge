@@ -158,6 +158,30 @@ bystander, and closes the loop between "the code decides" and "the model
 narrates." Corrections are owed for exactly one turn, and only rejections the
 player would have *seen* qualify — bookkeeping ones stay in the log.
 
+Two further passes were needed before this held. The narrator had to be told
+that it has *not been shown* what other rooms contain, so describing one means
+inventing it — and that stopping at the foot of the stair is a correct place to
+end a reply. And path-finding had to move out of the prompt and into
+`World.step_toward`: telling the extractor to report the adjacent step was tried
+first and simply did not take, whereas shortest path is a topology question with
+an exact answer. The same request now reads:
+
+```
+> I take the hidden stair from here up to the lamp room
+
+There is no hidden stair. The only way up is the spiral stair, winding against
+the inner wall with its iron rail gone green and soft from salt. You set your
+hand on it and climb.
+[...]
+You do not reach the lamp room. Not yet. The stair coils on into shadow and
+weather, and here at the turn you still stand on salt-wet stone, the Landing
+fallen away below, the top still hidden by the curve of the wall.
+```
+
+A false premise refused, one room travelled, and the arrival explicitly
+withheld. `/state` reads `The Spiral Stair`, which is where the prose leaves the
+player standing.
+
 ---
 
 ## Architecture
