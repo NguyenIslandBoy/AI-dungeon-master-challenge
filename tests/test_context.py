@@ -43,6 +43,31 @@ def test_taken_items_stop_being_listed_as_lying_around(world, state):
     assert "a rusty key" not in system.split("Items here (not yet taken):")[1].split("\n")[0]
 
 
+def test_the_narrator_is_never_shown_an_internal_id(world, state):
+    """Observed live: the narrator ended its reply with
+    `Exits: The Spiral Stair [stair_ascent], ...` — copying the scene block's
+    scaffolding, ids and all, straight to the player. It never needed ids: it
+    does not propose moves, the extractor does."""
+    system, _ = context.build(state, world, Transcript(), "look")
+    for location_id in world.locations:
+        assert f"[{location_id}]" not in system
+    assert "Exits: The Landing, The Shore Path" not in system  # not this location
+    assert "Exits: The Shore Path, The Spiral Stair" in system  # names, sorted
+
+
+def test_the_extractor_still_gets_ids(world, state):
+    """The ids moved, they did not disappear — the extractor's whole job is to
+    return them."""
+    from tests.stubs import StubClient
+
+    from dungeon_master.llm.extractor import extract
+
+    client = StubClient("{}")
+    extract(client, world, state, "I go up", "You climb.")
+    user = client.calls[0]["messages"][0]["content"]
+    assert "stair_ascent" in user and "shore_path" in user
+
+
 def test_item_canon_reaches_the_prompt(world, state):
     """Without this the narrator invents what a letter says — observed live."""
     system, _ = context.build(state, world, Transcript(), "I read the letter")

@@ -72,7 +72,10 @@ def render_scene(world: World, state: GameState) -> str:
     return prompts.SCENE_BLOCK.render(
         location_name=scene.location.name,
         description=scene.location.description.strip(),
-        exits=_join([f"{name} [{lid}]" for lid, name in scene.exits.items()]),
+        # Display names only. The narrator never proposes a move — the extractor
+        # does, and it gets the ids separately — so showing ids here bought
+        # nothing and invited the narrator to echo them at the player.
+        exits=_join(sorted(scene.exits.values())),
         npcs=_join([n.name for n in scene.npcs.values()]),
         items=_join([i.name for i in in_play.values()]),
         item_detail="\n".join(detail) or f"- {NONE}",
