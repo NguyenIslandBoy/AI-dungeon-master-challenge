@@ -93,23 +93,23 @@ meta:
   opening_scene: ...   # verbatim first message, so turn 1 is deterministic
 
 locations:
-  lighthouse_landing:
-    name: "Lighthouse Landing"
+  the_drift:
+    name: "The Drift"
     description: "..."          # sensory, 2–3 sentences
-    exits: [stair_ascent, shore_path]
-    npcs: [keeper]
-    items: [rusty_key, sealed_letter]
+    exits: [net_lofts, the_shallows]
+    npcs: [sarn]
+    items: [passage_papers, salt_lantern]
     secrets: ["..."]            # DM-only, never narrated directly
 
 npcs:
-  keeper:
-    name: "The Keeper"
+  nell:
+    name: "Nell Ashe"
     role: "..."
     wants: "..."                 # drives behaviour
     knows: ["..."]               # what they can truthfully reveal
     hides: ["..."]               # what they will deflect
-    faction: house_valen
-    default_disposition: 0
+    faction: drift_council
+    default_disposition: 25
 
 items: {...}
 factions: {...}
