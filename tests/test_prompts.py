@@ -71,3 +71,40 @@ def test_the_hard_rules_are_all_present():
     text = prompts.DM_SYSTEM.text
     for marker in ("1.", "2.", "2a. MOVEMENT", "2b.", "3.", "4.", "5.", "6."):
         assert marker in text, f"hard rule {marker} went missing from dm_system.md"
+
+
+def test_the_narrator_is_told_what_a_good_turn_does_not_only_what_it_must_not():
+    """Observed live: after five rounds of adding prohibitions, the prompt had
+    seven NEVERs and one positive instruction, and the narrator went defensive —
+    three turns in a row that re-listed the furniture and let nothing happen.
+    A model steers toward what is described, so the job has to be described."""
+    text = prompts.DM_SYSTEM.text
+    assert "EVERY TURN" in text
+    assert "Something changes" in text
+    assert "Spend detail, do not re-list it" in text
+    assert "Say yes" in text
+    # A worked example is the cheapest way to show a standard prose cannot state.
+    assert "A GOOD TURN LOOKS LIKE THIS" in text
+
+
+def test_movement_tells_a_listed_exit_apart_from_a_distant_one():
+    """Observed live: 'I walk out onto the flats' was met with a threshold, even
+    though the shore path is a listed exit. Rule 2a had been written for the
+    illegal-teleport case and was being applied to every move, so the player sat
+    in the first room for a whole session and state never left the start."""
+    movement = prompts.DM_SYSTEM.text.split("2a. MOVEMENT")[1].split("2b.")[0]
+    assert "The place is listed under Exits" in movement
+    assert "it is a yes" in movement
+    assert "The place is not listed under Exits" in movement
+    assert "stop\n   at the threshold" in movement
+
+
+def test_the_extractor_reports_the_room_a_threshold_carried_the_player_into():
+    """The other half of the same bug. The narrator correctly walks a player up
+    the stair and stops them below the lamp room; the extractor read 'threshold'
+    and returned null, leaving state a room behind the prose."""
+    text = prompts.EXTRACTOR_SYSTEM.text
+    assert "Threshold language cancels only the place it is attached to" in text
+    assert "the answer is the stair, not null" in text
+    # Twenty logged turns produced not one relationship change.
+    assert "relationship_changes is the most commonly missed field" in text

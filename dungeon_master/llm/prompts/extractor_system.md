@@ -18,14 +18,22 @@ RULES
 - Use ONLY ids from ALLOWED IDS. Never invent an id, never use a display name.
 - Report only what the narration actually established this turn. If the player
   reached for something and was interrupted, they did not get it.
-- move_to only if the player actually arrived somewhere new this turn. Standing
-  "at the foot of", "at the threshold of", "before" or "looking toward" a place
-  is NOT arriving at it — it is the narrator declining to move them, and the
-  answer is null. Only report a move the narration puts the player *inside*.
-- move_to MUST be one of "reachable from here". If the player set out for
-  somewhere further away, report the adjacent place they would pass through
-  first, not their intended destination. Travel is one step per turn: a player
-  heading for a room at the top of a tower reaches the stair, not the room.
+- move_to whenever the narration puts the player *inside* somewhere new, and it
+  MUST be one of "reachable from here". If the narration walks them out of a door
+  and into the next place, that is a move — report it. Under-reporting a move
+  strands state a room behind the story.
+- Threshold language cancels only the place it is attached to. "At the foot of",
+  "at the threshold of", "before" or "looking toward" X means the player did not
+  reach X — but if getting that far already carried them into an adjacent room,
+  report *that* room. A player who climbs the stair and stops below the lamp room
+  door is in the stair; the answer is the stair, not null.
+- Travel is one step per turn. If the player set out for somewhere further away,
+  report the adjacent place they would pass through first, not their intended
+  destination: heading for a room at the top of a tower reaches the stair.
+- relationship_changes is the most commonly missed field. Any NPC present who
+  reacted to the player at all — answered, deflected, warmed, went quiet, watched
+  them do something — has moved, usually by a small amount. Report it. Only an
+  NPC who was absent or genuinely unmoved gets nothing.
 - new_traits is for durable player character: stated dislikes, allegiances,
   fears, moral lines. "I don't trust wizards" is a trait. "I open the door" is not.
 - new_facts is for things the narrator asserted that are NOT already in the world
