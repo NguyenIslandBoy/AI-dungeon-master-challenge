@@ -199,6 +199,56 @@ def test_summariser_folds_aged_out_turns_and_is_told_not_to_duplicate_state(worl
     assert maybe_compress(client, transcript) is False  # nothing new to fold
 
 
+def test_a_new_game_starts_with_the_opening_scene_already_said(world, tmp_path):
+    """The opening scene is printed to the player as the DM's first utterance, so
+    the DM has to have said it. Without this the narrator answers "I pick up the
+    letter" with no record that a letter was ever mentioned."""
+    from dungeon_master.cli import _start
+
+    state, transcript, resumed = _start(world, tmp_path / "save.json")
+
+    assert resumed is False
+    assert state.turn_count == 0
+    assert transcript.turns[0].dm == world.meta.opening_scene.strip()
+    # It has to reach the model, not merely sit in the object.
+    _, messages = context.build(state, world, transcript, "I pick up the letter")
+    assert any("a lamp and a letter" in m["content"] for m in messages)
+
+
+def test_a_relaunch_resumes_the_autosave_instead_of_restarting(world, state, tmp_path):
+    """The loop autosaved every turn and never read the file back, so every
+    launch silently began the adventure again — visible in game.log as the same
+    opening turns replayed across three separate sessions."""
+    from dungeon_master.cli import _start
+
+    path = tmp_path / "save.json"
+    played, _ = apply_delta(state, StateDelta(add_items=["lamp"]), world)
+    played.turn_count = 7
+    transcript = Transcript(summary="The player took a lamp.")
+    save(played, transcript, path)
+
+    resumed_state, resumed_transcript, resumed = _start(world, path)
+
+    assert resumed is True
+    assert resumed_state.inventory == ["lamp"]
+    assert resumed_state.turn_count == 7
+    assert resumed_transcript.summary == "The player took a lamp."
+
+
+def test_an_unreadable_save_starts_a_new_game_rather_than_dying(world, tmp_path):
+    """A save written by an older schema must not be a dead end on startup."""
+    from dungeon_master.cli import _start
+
+    path = tmp_path / "save.json"
+    path.write_text("{ this is not json", encoding="utf-8")
+
+    state, transcript, resumed = _start(world, path)
+
+    assert resumed is False
+    assert state.current_location == world.meta.start_location
+    assert len(transcript.turns) == 1
+
+
 def test_save_and_load_round_trips_state_and_memory(world, state, tmp_path):
     transcript = Transcript(summary="Something happened.")
     transcript.append("I take the key", "It is cold.")

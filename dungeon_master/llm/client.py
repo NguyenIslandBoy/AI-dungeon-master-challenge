@@ -21,6 +21,13 @@ log = logging.getLogger(__name__)
 DEFAULT_BASE_URL = "https://api.novita.ai/openai"
 RETRYABLE = (APITimeoutError, APIConnectionError, RateLimitError, APIError)
 
+# Novita returns 429 "server overload" in bursts that outlast a couple of
+# seconds, so the backoff has to be able to wait one out. Capped rather than
+# unbounded: 2, 4, 8, 8 is 22s of worst-case waiting before the turn is given up,
+# which a player will accept behind a spinner. Doubling forever would not be.
+MAX_BACKOFF = 8.0
+ATTEMPTS = 5
+
 
 def _worth_retrying(exc: Exception) -> bool:
     """A 400 means the request itself is wrong, and it will be just as wrong the
@@ -44,7 +51,7 @@ class LLMClient:
         api_key: str | None = None,
         base_url: str | None = None,
         timeout: float = 60.0,
-        attempts: int = 2,
+        attempts: int = ATTEMPTS,
     ) -> None:
         key = api_key or os.environ.get("NOVITA_API_KEY", "")
         if not key:
@@ -56,6 +63,11 @@ class LLMClient:
             api_key=key,
             base_url=base_url or os.environ.get("NOVITA_BASE_URL", DEFAULT_BASE_URL),
             timeout=timeout,
+            # One retry layer, not two. The SDK retries twice by default, so the
+            # loop below was silently issuing three requests per "attempt" —
+            # `attempts=2` meant six. A retry budget nobody can read off the code
+            # is a budget nobody can tune, and this one needed tuning.
+            max_retries=0,
         )
         self._json_support: dict[str, bool] = {}
 
@@ -99,7 +111,7 @@ class LLMClient:
                     break
                 log.warning("llm attempt %s/%s failed: %s", attempt, self.attempts, exc)
                 if attempt < self.attempts:
-                    time.sleep(2**attempt)
+                    time.sleep(min(2**attempt, MAX_BACKOFF))
         raise LLMError(str(last)) from last
 
     @staticmethod
@@ -127,9 +139,11 @@ class LLMClient:
                 "NARRATOR_MODEL=%s is a reasoning model: it spent its entire "
                 "token budget on %s reasoning chunks and never emitted prose. "
                 "Set NARRATOR_MODEL in your .env (NOT .env.example - .env is "
-                "gitignored and a pull will not update it) to an instruct-tuned "
-                "model, e.g. meta-llama/llama-3.3-70b-instruct or "
-                "moonshotai/kimi-k2-instruct. Run --models to see the catalog.",
+                "gitignored and a pull will not update it) to a model that does "
+                "not think before it speaks - meta-llama/llama-3.3-70b-instruct "
+                "is verified. An -instruct suffix means nothing: kimi-k2-instruct, "
+                "kimi-k2-0905 and glm-4.7-flash all reason. Run --models for the "
+                "catalog.",
                 model,
                 thought,
             )

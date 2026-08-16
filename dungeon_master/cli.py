@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 import sys
+from pathlib import Path
+
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
@@ -15,6 +17,7 @@ from .llm.client import LLMClient, LLMError
 from .llm.extractor import extractor_model
 from .llm.narrator import narrator_model
 from .memory.transcript import Transcript
+from .state.models import GameState
 from .state.store import SAVE_PATH, load, new_game, save
 from .world.loader import WorldValidationError, load_world
 
@@ -42,6 +45,28 @@ def _show_state(world, state) -> None:
             expand=False,
         )
     )
+
+
+def _start(world, path: Path = SAVE_PATH) -> tuple[GameState, Transcript, bool]:
+    """Resume the autosave if there is one, otherwise open a new game.
+
+    The loop has always autosaved every turn but never read the file back, so
+    every launch silently restarted the adventure. Seeding the transcript with
+    the opening scene matters for the same reason: it is printed to the player as
+    the DM's first utterance, so the DM has to have said it. Without this the
+    narrator answers "I pick up the letter" having no record of a letter.
+    """
+    if path.exists():
+        try:
+            state, transcript = load(path)
+            return state, transcript, True
+        except (OSError, ValueError) as exc:
+            # A save written by an older schema must not be a dead end.
+            log.warning("could not read %s, starting fresh: %s", path, exc)
+
+    transcript = Transcript()
+    transcript.append("(the story begins)", world.meta.opening_scene.strip())
+    return new_game(world), transcript, False
 
 
 def _list_models() -> int:
@@ -111,10 +136,15 @@ def play() -> int:
         console.print(f"[red]{exc}[/red]")
         return 1
 
-    state, transcript = new_game(world), Transcript()
+    state, transcript, resumed = _start(world)
 
     console.print(Rule(f"[bold]{world.meta.name}[/bold]"))
-    console.print(world.meta.opening_scene.strip())
+    if resumed:
+        console.print(f"[dim]resumed from {SAVE_PATH} at turn {state.turn_count} "
+                      f"— delete it to begin again[/dim]")
+        _show_state(world, state)
+    else:
+        console.print(world.meta.opening_scene.strip())
     console.print(Rule(style="dim"))
     # Show the models actually in effect. .env is gitignored, so what a reviewer
     # is running is not necessarily what .env.example says.
