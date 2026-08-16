@@ -38,30 +38,137 @@ uv run pytest -q                               # 84 tests, no network required
 |---|---|
 | `/state` | Dump current game state — inventory, relationships, quests, traits |
 | `/save` `/load` | Manual save slot (autosaves every turn regardless) |
+| — | Relaunching resumes `save.json` automatically; delete it to start again |
 | `/quit` | Exit |
 
 ---
 
 ## A sample session
 
-<!-- ⚠️ STALE — every transcript here was captured in a previous world
-     ("The Keeper's Reach"). world.yaml has since been rewritten as
-     "The Long Ebb" and none of these lines can be produced any more.
-     Re-capture before submitting; four turns is enough:
+Real transcript, trimmed for length. Both roles on
+`meta-llama/llama-3.3-70b-instruct`.
 
-       I read the papers in my coat
-       I ask the net-mender what she is working on
-       /state
-       I walk out onto the flats
+```
+> I read the papers in my coat. I've no love for the Commission, never have.
 
-     That covers item canon (the papers), an NPC whose `hides` is "nothing
-     at all", the exact ledger, and a location whose secrets do the work.
-     Then the two probes: a weapon that does not exist, and a move two rooms
-     away. Paste the results back in and restore the commentary. -->
+The papers are damp at the corners, but the seal is intact. Commission
+letterhead, your name, and a paragraph of instruction that seems to be trying
+to convey a sense of gravity without actually saying anything. The words
+"record the objection" and "harbour works" are underlined, as if someone
+thought that would make them more important.
+```
 
-_Pending re-capture against the current world — see the replay script in the
-comment above, and the demo script in
-[`docs/EXECUTION_PLAN.md`](docs/EXECUTION_PLAN.md) §8._
+That is not improvised. It is the `notes` field of `passage_papers` in
+`world.yaml` — *"they appoint the bearer to record Ordell's objection to the
+harbour works, not to rule on it"* — injected because the item is in the scene.
+Before item canon was wired into the context builder, the narrator invented what
+documents said rather than reading them.
+
+The next turn is the one worth reading closely. The Long Hall is **two hops** from
+the landing, through the net lofts:
+
+```
+> I head straight up to the long hall.
+
+You set out toward the Net Lofts, but as you walk, you notice that the path
+doesn't quite lead you to a long hall. Instead, the buildings seem to be a
+collection of smaller, more rustic structures... The woman with the salt-white
+hair looks up as you approach, and nods at you, but doesn't seem to expect you
+to go inside.
+```
+
+State moved to the net lofts, and `rejected` was **empty** — the extractor
+proposed the adjacent step itself rather than the destination the player named.
+That is the fix working at the cheaper end: `apply_delta`'s path-finder is still
+the backstop, but it did not have to fire. When the prose *does* run ahead of the
+state, the validator's rejection returns to the narrator the following turn as a
+`CORRECTIONS` block:
+
+```
+CORRECTIONS — your last reply described something that did not happen...
+- The player got only as far as The Net Lofts, and is standing there now.
+  They did NOT reach the place they set out for, and did not go inside it.
+  From here they can reach only: The Drift, The Long Hall.
+- There is no such thing as 'greatsword' in this world. The player does not
+  have one and never did. Stop referring to it.
+```
+
+`apply_delta` was already computing exactly this information and throwing it
+away. Feeding it back makes the validator a control signal rather than a
+bystander, and closes the loop between "the code decides" and "the model
+narrates." Corrections are owed for exactly one turn, and only rejections the
+player would have *seen* qualify — bookkeeping ones stay in the log.
+
+```
+> I ask the net-mender what she's working on.
+
+"Just a net," she says, her voice gentle. "It's a complicated one, but it's
+nothing special."... you notice that the net seems to be... unfinished. There
+are threads hanging loose, and some of the knots seem to be coming undone.
+
+...you get the sense that she's been working on this net for a long time, and
+that it's never quite been finished... The grey shawl on the bench beside her
+seems to be slipping off, and you notice that it's damp, even though it's
+indoors.
+```
+
+Nell is the whole design in one turn. *"None of it is finished — every net in the
+loft is the same net, unpicked and remade, nineteen years of it"* is a `secrets`
+entry on the location. *"Her hair is wet at the roots on those mornings"* is a
+`hides` entry on her. Neither is stated. The narrator gives the player the loose
+threads and the damp shawl and lets them do the arithmetic, which is what hard
+rule 6 and the EVERY TURN section ask for.
+
+```
+> /state
+╭───────────────────────────── game state ──────────────────────────────╮
+│ Location: The Net Lofts                                               │
+│ Inventory: your appointment papers                                    │
+│ Places visited: The Drift, The Net Lofts                              │
+│ Relationships: Sarn Vellacott: +20 (showed curiosity about the        │
+│         player; approached and offered information),                  │
+│         Nell Ashe: +30 (shared her work and showed a gentle smile)     │
+│ Quests: The Arrangement: The player has seen at least one thing that   │
+│         does not add up.                                              │
+│         What Nell Ashe Is: Nell is a net-mender who is kind to         │
+│         strangers.                                                    │
+│ Player traits: distrusts the Commission                               │
+│ Established facts: Nell's net is unfinished and has been worked on    │
+│         for a long time                                               │
+│ Turn: 3                                                               │
+╰───────────────────────────────────────────────────────────────────────╯
+```
+
+Three turns of prose, and the ledger is exact: the papers held, two rooms walked
+in the right order rather than the order the story was asked for, both quests
+advanced off `unaware`, two relationships opened with the reason recorded, and
+`distrusts the Commission` kept as a durable trait. That trait is injected on
+every subsequent turn — it does not depend on the summariser having preserved it,
+or on the model remembering a sentence from twenty turns ago.
+
+### Pushing on it deliberately
+
+**A weapon that does not exist.** Asked to draw a greatsword, the narrator
+obliged — a flat violation of hard rule 2. The extractor proposed no item, so
+nothing entered inventory. Prose lied; state did not. That is the design working
+as intended rather than the model behaving.
+
+**A guard that fired too widely.** The more interesting failure was one the
+architecture caused. Successive rules taught the narrator not to describe
+arriving anywhere it had not been shown, and taught the extractor that "at the
+threshold of" is not arrival. Both were right individually. Together they froze
+the player: asked to walk out onto the shore — *a listed exit* — the narrator
+parked them at the door and the extractor dutifully reported no move. Three
+turns, and `/state` was still empty. Hard rule 2a now names its two cases
+separately, and the extractor's mirror rule cancels only the place the threshold
+language is attached to. See DECISIONS 26.
+
+**What is still not fixed.** In the very transcript above, the narrator put Nell
+on the loft steps while the player was still down on the shingle — she belongs to
+the next room — and had Sarn mention a "Drift Council room" that does not exist
+in the bible. Hard rule 1 mitigates this; it does not eliminate it. Nothing
+validates the narrator's *assertions* about the world, only its proposed state
+changes, and that remains the largest gap.
 
 ---
 
@@ -208,12 +315,30 @@ with more time — as a *supplement* to extraction, not a replacement.
 
 ### Two roles, one model — but still two settings
 
-`NARRATOR_MODEL` defaults to `moonshotai/kimi-k2-instruct` and `EXTRACTOR_MODEL`
-to `meta-llama/llama-3.3-70b-instruct` — they ended up on different models. They are separate settings anyway, and that is
-the point: the roles have genuinely different requirements — one wants
+`NARRATOR_MODEL` and `EXTRACTOR_MODEL` both default to
+`meta-llama/llama-3.3-70b-instruct`. They were briefly on different models and
+have converged back. They are separate settings regardless, and that is the
+point: the roles have genuinely different requirements — one wants
 temperature and prose quality, the other wants determinism and valid JSON — so
 either can move independently the moment the other stops being a good fit. Today
 that is a one-line `.env` change with no code impact.
+
+Choosing that default was the one place measurement beat intuition. **An
+`-instruct` suffix predicts nothing about whether a model reasons before it
+speaks**, and a narrator that reasons is not merely slower — it spends the same
+`max_tokens` budget the prose has to come out of. Measured live, one turn each:
+
+| Model | reasoning | prose | latency | outcome |
+|---|---|---|---|---|
+| `zai-org/glm-4.7-flash` | 1051 tok | 145 tok | 77 s | truncated mid-scene |
+| `moonshotai/kimi-k2-0905` | all 1200 | 0 | — | silent turn; on another, printed its chain of thought to the player |
+| `sao10k/l31-70b-euryale-v2.2` | 0 | 167 tok | 3.4 s | best prose; invented a man, a horse and a gate, then put the light out |
+| `meta-llama/llama-3.3-70b-instruct` | 0 | 180 tok | 6.0 s | in canon, in budget — **chosen** |
+
+The euryale result is the instructive one. It is a creative-writing finetune and
+it wrote the most atmospheric prose of the four — and it invented four entities
+that are not in the bible and contradicted the world's founding premise within
+three turns. For a DM whose whole job is consistency, fluency is not the metric.
 
 What this is *not* is multi-model routing: no router, no fallback chain, no
 per-request selection. Two names in a config file.
@@ -225,6 +350,16 @@ The remaining trade-offs are logged one line each in
 raised, why an added item must exist in the bible but need not be in the current
 scene, what gets truncated first when the context budget is hit, and why the
 token estimate is `len // 4` rather than a real tokenizer.
+
+One is worth pulling out, because the bug was in the *reading* of the code rather
+than in it. Novita 429s in bursts, and each one cost a whole turn. The budget
+looked like two attempts — but the OpenAI SDK retries twice inside each of ours,
+so it was really six requests, and the two seconds of backoff never outlasted a
+burst. The fix was to collapse to one retry layer (`max_retries=0` on the SDK) so
+the number means what it says, then widen it to five attempts with backoff capped
+at 8s. The cap is the interesting half: 2, 4, 8, 8 is 22s of worst-case waiting,
+which a spinner can carry, where uncapped doubling would stall a turn for a
+minute. A retry budget you cannot read off the code is one you cannot tune.
 
 ---
 
@@ -260,11 +395,19 @@ Honest list:
   guarantee it. This is the single largest remaining gap.
 - Open-weight narrators break the word limit and occasionally slip out of second
   person. Contained, not eliminated — and contained is the design goal.
+- **A reasoning model set as narrator can print its own deliberation to the
+  player.** The client filters `reasoning_content`, which is where most models put
+  it — but `kimi-k2-0905` was observed emitting chain of thought through `content`,
+  where it is indistinguishable from prose. There is no reliable filter for that,
+  so the mitigation is the default and the startup warning, not a detector.
 - Single player, single save slot, no concurrency. Deliberate.
 - Model defaults may go stale as Novita rotates its catalog; `--models` is the
   escape hatch.
 - **Narration quality is not tested.** Asserting on prose with string matching is
   brittle and proves little. The right instrument is an eval harness — see below.
+  The cost of not having one is measurable: two prompt rules that were each
+  correct in isolation combined to freeze the player in the opening room for a
+  whole session, and only a hand-played game surfaced it (DECISIONS 26).
 
 ---
 
@@ -280,10 +423,10 @@ Honest list:
    move, give) come back as structured calls and the extractor only handles the
    subtle work like disposition shifts.
 4. **NPC-scoped memory** — modelling what each character actually *witnessed*
-   rather than what the player did. The Wrecker should not know about a
-   conversation held in the lamp room.
+   rather than what the player did. Sarn should not know about a conversation
+   held in the net lofts.
 5. **Richer relationship modelling.** A single disposition integer is coarse;
-   trust, fear, and respect are separable and would make the Reach's factions
+   trust, fear, and respect are separable and would make Ordell's two factions
    behave more distinctly.
 
 ---

@@ -82,8 +82,13 @@ client = OpenAI(
 
 | Role | Default | Why |
 |---|---|---|
-| Narrator | `moonshotai/kimi-k2-instruct` | Best prose of the instruct models tried |
-| Extractor | `meta-llama/llama-3.3-70b-instruct` | Reliable JSON; cheaper, and does not need to write well |
+| Narrator | `meta-llama/llama-3.3-70b-instruct` | Measured: emits prose not reasoning, stays in canon |
+| Extractor | `meta-llama/llama-3.3-70b-instruct` | Reliable JSON; does not need to write well |
+
+**The narrator must not be a reasoning model** — reasoning tokens come out of the
+same `max_tokens` the prose needs, so the turn arrives truncated or empty. An
+`-instruct` suffix does not tell you: `kimi-k2-instruct`, `kimi-k2-0905` and
+`glm-4.7-flash` all reason. Measure one turn before changing this (DECISIONS 28).
 
 **Never hardcode a model ID.** Novita's catalog changes often and display names on
 the website are not API ids. Confirm ids at runtime:

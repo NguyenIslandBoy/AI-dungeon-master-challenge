@@ -100,7 +100,7 @@ def test_backoff_is_capped_so_the_wait_stays_inside_a_players_patience(monkeypat
 
 def test_both_roles_fall_back_to_the_same_documented_default(monkeypatch):
     """DECISIONS 9: two settings, one default. When the narrator's default moved
-    off a reasoning model (DECISIONS 26) the extractor's was left behind, so the
+    off a reasoning model (DECISIONS 28) the extractor's was left behind, so the
     code claimed one thing and the README another. The extractor's failure is the
     quieter of the two — it returns empty content, the delta is dropped, and the
     prose still reads fine — so it is the one worth pinning."""

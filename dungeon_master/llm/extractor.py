@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 # A reasoning model starves here more quietly than it does in the narrator: it
 # spends the budget thinking, returns empty content, the delta is dropped, and
-# the prose still looks fine. `summarizer` imports this too. See DECISIONS 26.
+# the prose still looks fine. `summarizer` imports this too. See DECISIONS 28.
 DEFAULT_MODEL = "meta-llama/llama-3.3-70b-instruct"
 FENCE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.MULTILINE)
 

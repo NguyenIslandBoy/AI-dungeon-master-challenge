@@ -200,6 +200,20 @@ friendliness, volatile content last for recency:
   8. Current player input
 ```
 
+### What the DM is told to do
+
+The prompt opens with the job, not the fence. Five positive instructions:
+something changes every turn; the world acts on its own `wants` rather than only
+when prodded; detail is *spent*, not re-listed; secrets arrive as evidence the
+player must interpret; and an action the world permits is a **yes**. A worked
+example turn closes the file.
+
+This half exists because the other half grew without it. Five rounds of "add a
+prohibition after a live failure" left seven NEVERs against one positive
+instruction, and the narrator went defensive — re-listing the same furniture,
+letting nothing happen, refusing legal moves. A model steers toward what is
+described. See DECISIONS 27.
+
 ### Hard rules given to the DM
 
 Non-negotiable, and worth quoting in the README:
@@ -207,12 +221,19 @@ Non-negotiable, and worth quoting in the README:
 1. Never invent entities not in the provided scene or state. If the player goes
    somewhere undefined, describe it as impassable/unremarkable and redirect.
 2. Never grant, remove, or reference items not in the provided inventory or scene.
+2a. Movement, in two cases. A destination **listed under Exits** is a yes —
+   describe the going and the arriving. Anything else stops at the threshold,
+   because the narrator has not been shown what that place contains.
+2b. Never assert the *condition* of a place the player is not in. World history
+   outranks the narrator's own earlier prose.
 3. End every response with an implicit or explicit opening for player action.
 4. Never speak or decide for the player.
-5. 120–200 words. Second person, present tense.
+5. 120–200 words, and they are for *new* material. Second person, present tense.
 6. Never reveal DM-only notes directly; use them to inform behaviour.
 
-Rule 1+2 are what stop the classic hallucinated-loot failure mode.
+Rule 1+2 are what stop the classic hallucinated-loot failure mode. Rule 2a's
+two-case split is what stops the guard against teleporting from also blocking
+ordinary movement — the extractor carries the mirror of it (DECISIONS 26).
 
 ---
 
@@ -270,12 +291,15 @@ calling are supported.</cite>
 
 | Role | Default | Rationale |
 |---|---|---|
-| **Narrator** | `moonshotai/kimi-k2-instruct` | Best prose of the instruct models tried. Two earlier picks were reasoning models and starved (see DECISIONS 11) |
-| **Extractor** | `meta-llama/llama-3.3-70b-instruct` | Cheaper, reliable JSON, and never has to write a sentence anyone reads |
+| **Narrator** | `meta-llama/llama-3.3-70b-instruct` | Measured live: emits prose rather than reasoning, stays inside the bible, ~6s a turn. Three earlier picks were reasoning models and starved. See DECISIONS 28 |
+| **Extractor** | `meta-llama/llama-3.3-70b-instruct` | Cheaper, reliable JSON, and never has to write a sentence anyone reads. Kept a separate setting so it can move independently |
 
-Alternatives worth a swap if narration feels flat: `moonshotai/kimi-k2.5` (strong
-creative writing, pricier) or `zai-org/glm-4.7`. For the extractor, `qwen3-coder-30b-a3b`
-or a Ling flash model are comparable and cheap.
+**Do not pick a narrator by name.** An `-instruct` suffix does not tell you
+whether a model reasons before it speaks, and a reasoning narrator spends the
+same `max_tokens` the prose has to come out of. `glm-4.7-flash` — the original
+default here — burns ~1050 of 1200 tokens thinking and takes 77s a turn;
+`kimi-k2-0905` emitted nothing on one turn and leaked its chain of thought
+through `content` on another. Measure a candidate for one turn before adopting it.
 
 **Model ids are configuration, never constants.** Novita's catalog rotates
 frequently and the website's display names are not API ids. Resolve them at
@@ -314,10 +338,10 @@ weaker, cheaper model degrades prose. It does not corrupt the game.
 | Extractor returns non-JSON | Retry once with parse error appended → then skip delta, log |
 | Model rejects `response_format` | Fall back to prompt-enforced JSON; detect once at startup, cache the answer |
 | Delta references unknown entity | Drop that field, apply the rest, log |
-| API timeout / 5xx | Retry with backoff (2 attempts), then graceful in-loop message |
+| API timeout / 5xx | Retry with backoff (5 attempts: 2, 4, 8, 8s), then graceful in-loop message |
 | Model id no longer served (404) | Fail at startup with the `--models` hint, not mid-game |
 | Context growth | Hard token cap; summary regeneration is the pressure valve |
-| Rate limit (429) | Backoff; surface a "the DM pauses to think…" message |
+| Rate limit (429) | Backoff long enough to outlast an overload burst — Novita's run past 6s. One retry layer only: the SDK's own retries are disabled so the attempt count means what it says (DECISIONS 30) |
 
 The game loop never dies from an LLM failure. That's the robustness bar.
 

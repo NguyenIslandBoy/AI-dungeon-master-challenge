@@ -10,7 +10,7 @@ from .client import LLMClient
 # Measured live, not chosen by name: an `-instruct` suffix says nothing about
 # whether a model thinks before it speaks, and a narrator that does spends the
 # same budget the prose has to come out of. `kimi-k2-instruct` and
-# `glm-4.7-flash` both reason. See DECISIONS 26.
+# `glm-4.7-flash` both reason. See DECISIONS 28.
 DEFAULT_MODEL = "meta-llama/llama-3.3-70b-instruct"
 
 
