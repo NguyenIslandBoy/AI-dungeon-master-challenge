@@ -287,6 +287,25 @@ Two rules keep the tiers from fighting:
 as a structured field rather than hoping the summariser preserved it is the
 difference between that feature working reliably and working sometimes.
 
+### The tiering earning its keep, measured
+
+A 15-turn hand-played session settled this better than the argument could. On
+turn 1 the player said *"I've no love for the Commission — never have, never
+will."* By turn 15 the rolling digest had lost that thread **entirely** — no
+mention of the Commission, the objection they were sent to record, or the
+village's tarred boats. Fifteen turns of compression had eroded it down to the
+most recent emotional beat and nothing else.
+
+The trait still worked. `distrusts the Commission` was in the state block on
+every one of those turns, and turn 12 played out as a Commission officer who
+dislikes the Commission splitting the two Commission staff between them —
+Assayer Pike ending at `-25`, Hesper Quill at `+40`.
+
+That is the whole design in one measurement: **the lossy tier lost the thread and
+the feature did not care**, because nothing that affects what the player can do
+was ever stored as prose. Had the preference lived only in the transcript, it
+would have evaporated somewhere around turn 9.
+
 `established_facts` is the anti-contradiction ledger — when the DM invents
 something not in the bible, it is recorded and injected from then on.
 
@@ -381,8 +400,27 @@ minute. A retry budget you cannot read off the code is one you cannot tune.
 Honest list:
 
 - The extractor can miss subtle relationship shifts a human DM would register.
-- The summariser is lossy by design. A detail that mattered emotionally but was
-  never captured as a fact or a trait can be lost.
+- **The summariser recompresses every turn, not every eight — the single flaw I
+  would fix first.** `pending_compression` returns work as soon as the buffer
+  exceeds `VERBATIM_TURNS`, so from turn 9 it fires on *every* turn, folding one
+  turn each time: 12 calls across 20 turns where the design intended 2. Two
+  costs. It is a third model call per turn rather than the two the two-pass
+  design accounts for. And because each pass regenerates the digest from *its own
+  previous output*, early material is recompressed once per turn — measured
+  above, the opening three turns were unrecoverable by turn 15.
+  The obvious fix is wrong: batching to every 8 turns would leave turns 9–15 in
+  neither the verbatim window nor the digest, a coverage gap that is strictly
+  worse. Doing it properly means either widening the verbatim window to cover the
+  uncompressed tail, or making the digest append-only so nothing is compressed
+  twice. That is a memory-layer redesign, not a patch, so it is written down
+  rather than rushed. Note what it did *not* do: state stayed exact throughout.
+- **Relationship changes are not checked for scene presence.** `apply_delta`
+  validates that an npc id exists in the bible, never that the NPC is in the
+  room. Observed live: the ferryman — who is prose in `opening_scene` and not a
+  modelled NPC at all — was bound by the extractor to Hesper Quill, three rooms
+  away and never met, seeding her disposition with points the player never
+  earned. Items have a scene check that logs (decision 3); relationships have
+  neither check nor log.
 - The DM can still narrate *around* an entity it shouldn't — implying someone
   upstairs who isn't defined. Hard rule 1 mitigates this but does not eliminate it.
 - The correction loop is reactive, not preventive: a bad turn still reaches the

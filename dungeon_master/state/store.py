@@ -84,6 +84,22 @@ def _append_capped(
     return out[-cap:], notes
 
 
+def _goes_backwards(quest, current: str, proposed: str) -> bool:
+    """True if `proposed` sits earlier in the authored stage order than `current`.
+
+    A heuristic, and named as one: stage order is the order they appear in
+    `world.yaml`, which is linear for the early stages and then fans out into
+    mutually exclusive endings. That is enough to catch the failure it exists
+    for — an extractor walking a quest *backwards* — without pretending to
+    understand a branch. Like the near-duplicate check, every suppression is
+    reported rather than silently applied.
+    """
+    order = list(quest.stages)
+    if current not in order or proposed not in order:
+        return False
+    return order.index(proposed) < order.index(current)
+
+
 def apply_delta(
     state: GameState, delta: StateDelta, world: World
 ) -> tuple[GameState, list[str]]:
@@ -170,6 +186,11 @@ def apply_delta(
             rejected.append(f"quest_updates: unknown quest '{quest_id}'")
         elif stage not in quest.stages:
             rejected.append(f"quest_updates: unknown stage '{stage}' for '{quest_id}'")
+        elif _goes_backwards(quest, new.quest_flags.get(quest_id, quest.start), stage):
+            rejected.append(
+                f"quest_updates: '{quest_id}' cannot go back from "
+                f"'{new.quest_flags.get(quest_id, quest.start)}' to '{stage}'"
+            )
         else:
             new.quest_flags[quest_id] = stage
 

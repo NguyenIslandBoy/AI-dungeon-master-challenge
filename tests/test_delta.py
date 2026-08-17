@@ -122,6 +122,34 @@ def test_valid_quest_stage_applies(state, world):
     assert rejected == []
 
 
+def test_a_quest_cannot_walk_backwards(state, world):
+    """Observed live over 15 hand-played turns: the extractor proposed
+    shown -> recorded -> uneasy -> recorded for the same quest, regressing two
+    stages and then recovering. Stage *existence* was validated; stage *order*
+    was not, so any stage could be set at any time. Quitting on the wrong turn
+    would have saved a regressed quest."""
+    seen, _ = apply_delta(state, StateDelta(quest_updates={"q_light": "done"}), world)
+    assert seen.quest_flags["q_light"] == "done"
+
+    new, rejected = apply_delta(seen, StateDelta(quest_updates={"q_light": "seen"}), world)
+    assert new.quest_flags["q_light"] == "done"  # unmoved
+    assert any("cannot go back from 'done' to 'seen'" in r for r in rejected)
+
+
+def test_a_quest_may_still_skip_forward(state, world):
+    """Only backwards is refused. A turn can legitimately establish enough to
+    jump a stage, and the code has no way to know it did not."""
+    new, rejected = apply_delta(state, StateDelta(quest_updates={"q_light": "done"}), world)
+    assert new.quest_flags["q_light"] == "done"
+    assert rejected == []
+
+
+def test_restating_the_current_quest_stage_is_not_a_regression(state, world):
+    new, rejected = apply_delta(state, StateDelta(quest_updates={"q_light": "unaware"}), world)
+    assert new.quest_flags["q_light"] == "unaware"
+    assert rejected == []
+
+
 def test_traits_and_facts_deduplicate(state, world):
     delta = StateDelta(new_traits=["distrusts wizards"], new_facts=["the stove is cold"])
     once, _ = apply_delta(state, delta, world)
