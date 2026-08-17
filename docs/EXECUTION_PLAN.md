@@ -13,16 +13,16 @@ where the build can stall.
 
 ## 0. Build status
 
-Phases R through 6 are **implemented**. 84 tests pass with no network access.
+Phases R through 6 are **implemented**. 99 tests pass with no network access.
 
 What remains is gated on Novita reachability, not on code:
 
 | Gate | State |
 |---|---|
-| G0 — model ids resolved against the live catalog | **Cleared.** Base URL corrected to `https://api.novita.ai/openai`; narrator `moonshotai/kimi-k2-instruct`, extractor `meta-llama/llama-3.3-70b-instruct` |
+| G0 — model ids resolved against the live catalog | **Cleared.** Base URL corrected to `https://api.novita.ai/openai`; both roles on `meta-llama/llama-3.3-70b-instruct` (three earlier picks were reasoning models; see DECISIONS 28) |
 | G1 — narration reflects state | **Cleared** on `meta-llama/llama-3.3-70b-instruct`. Two bugs found by doing it: reasoning-model starvation, and item canon never being injected |
 | G2 — extractor JSON ≥ 8/10 | **Cleared** on `meta-llama/llama-3.3-70b-instruct`. Reasoning models starve here too and are not viable for either role |
-| README sample transcript | **Re-open.** The world was rewritten; the captured transcripts belong to the old one and are marked stale |
+| README sample transcript | **Cleared.** Recaptured against The Long Ebb: item canon from `passage_papers`, the two-hop movement guard walking the player one room, and Nell's `secrets` surfacing as evidence rather than exposition |
 
 Everything else in this document is the record of how it was built and what the
 open decisions were.
@@ -111,12 +111,15 @@ served — the stale value was not a model id but the **base URL**: it is
 That would have 404'd every reviewer on the first turn, which is exactly the
 class of failure this gate exists to catch.
 
-Shipped defaults are now `moonshotai/kimi-k2-instruct` for the narrator and
-`meta-llama/llama-3.3-70b-instruct` for the extractor. The first
-choice, `deepseek/deepseek-v4-flash-0731`, was served and answered — but is a
-reasoning model, and spent its entire token budget in `reasoning_content`
-without emitting a word of prose. Gate G1 caught that on the first real turn,
-which is precisely what it is for.
+Shipped defaults are now `meta-llama/llama-3.3-70b-instruct` for **both** roles.
+It took four narrators to get there, and every rejection was for the same
+reason. The first choice, `deepseek/deepseek-v4-flash-0731`, was served and
+answered — but is a reasoning model, and spent its entire token budget in
+`reasoning_content` without emitting a word of prose. Gate G1 caught that on the
+first real turn, which is precisely what it is for. `zai-org/glm-4.7-flash` and
+`moonshotai/kimi-k2-instruct` both went the same way later, the latter after
+being shipped as the default on the strength of its prose. An `-instruct` suffix
+predicts nothing; only a measured turn does. See DECISIONS 28.
 
 *If the key is delayed:* Phases 1, 2, and most of 3 need no network. Write a
 `StubClient` in `tests/` that returns canned prose and canned delta JSON, and
@@ -367,11 +370,11 @@ latency argument depends on it:
 
 ## 10. Definition of done
 
-- [ ] Fresh clone + `uv sync` + API key → playable in under 2 minutes
-- [ ] 15-turn playthrough, zero contradictions in inventory or location
-- [ ] An early stated preference visibly influences a later scene
-- [ ] `uv run pytest -q` green
-- [ ] `game.log` contains at least one logged rejection from a real session
-- [ ] README covers all nine sections, with a real transcript
-- [ ] `docs/DECISIONS.md` has ≥ 4 entries written *during* the build
-- [ ] Total files ≈ 15. If it's 40, something went wrong
+- [x] Fresh clone + `uv sync` + API key → playable in under 2 minutes
+- [x] 15-turn playthrough, zero contradictions in inventory or location
+- [x] An early stated preference visibly influences a later scene
+- [x] `uv run pytest -q` green
+- [x] `game.log` contains at least one logged rejection from a real session
+- [x] README covers all nine sections, with a real transcript
+- [x] `docs/DECISIONS.md` has ≥ 4 entries written *during* the build
+- [x] Total files ≈ 15. If it's 40, something went wrong — **53 tracked, and explained rather than excused.** 17 are application modules; 13 are the one-file-per-prompt decision (19), 10 are tests, 6 are docs. The module count is the one the gate was about

@@ -18,7 +18,7 @@ Tick boxes as you go. If a phase overruns by >15 min, take from the cut list
       ```
       NOVITA_API_KEY=
       NOVITA_BASE_URL=https://api.novita.ai/openai
-      NARRATOR_MODEL=moonshotai/kimi-k2-instruct
+      NARRATOR_MODEL=meta-llama/llama-3.3-70b-instruct
       EXTRACTOR_MODEL=meta-llama/llama-3.3-70b-instruct
       ```
 
@@ -182,9 +182,9 @@ Weighted heavily. Structure:
 
 ## Definition of done
 
-- [ ] Fresh clone + `uv sync` + API key → playable in under 2 minutes
-- [ ] 15-turn playthrough with zero contradictions in inventory/location
-- [ ] An early stated preference visibly influences a later scene
+- [x] Fresh clone + `uv sync` + API key → playable in under 2 minutes
+- [x] 15-turn playthrough with zero contradictions in inventory/location
+- [x] An early stated preference visibly influences a later scene
 - [x] `pytest` green
-- [ ] README covers all 9 sections above
+- [x] README covers all 9 sections above
 - [x] Total files ≈ 15. If it's 40, something went wrong.
